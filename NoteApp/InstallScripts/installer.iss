@@ -3,7 +3,7 @@
 
 #define MyAppName "NoteApp"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "Stepanyuga Anton"
+#define MyAppPublisher "Solovyova Anastasiya"
 #define MyAppExeName "NoteApp.exe"
 
 [Setup]
