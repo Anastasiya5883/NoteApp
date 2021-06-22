@@ -65,9 +65,9 @@
             this.label3.Location = new System.Drawing.Point(45, 148);
             this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(189, 17);
+            this.label3.Size = new System.Drawing.Size(196, 17);
             this.label3.TabIndex = 2;
-            this.label3.Text = "Author: Soloyova Anastasiya";
+            this.label3.Text = "Author: Solovyova Anastasiya";
             this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
             // label4
@@ -142,7 +142,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "AboutForm";
             this.Text = "About";
             this.ResumeLayout(false);
