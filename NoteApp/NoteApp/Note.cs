@@ -26,7 +26,7 @@ namespace NoteApp
             {
                 if (value.Length >= 50)
                 {
-                    throw new ArgumentException("Имя заметки должно быть не более 50 символов!");
+                    throw new ArgumentException("The note name must be less than 50 characters!");
                 }
                 else
                 {
@@ -34,7 +34,7 @@ namespace NoteApp
                     {
                         _title = value;
                     }
-                    else _title = "Безымянный";
+                    else _title = "Nameless";
                 }
             }
         }

@@ -35,6 +35,7 @@ namespace NoteApp
         {
             return notes = notes.Where(item => item.NoteCategory == category).OrderByDescending(item => item.TimeLastChange).ToList();
         }
+
         /// <summary>
         /// Сортировка по дате изменения
         /// </summary>

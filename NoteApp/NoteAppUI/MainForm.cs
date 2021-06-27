@@ -227,29 +227,7 @@ namespace NoteAppUI
                 NotesListBox.SelectedIndex = _project.SelectedIndex;
             }
         }
-        /// <summary>
-        /// Добавление заметки при нажатии на кнопку AddNoteButton
-        /// </summary>
-        private void AddNoteButton_Click(object sender, EventArgs e)
-        {
-            AddNote();
-        }
-
-        /// <summary>
-        /// Добавление заметки при нажатии на кнопку EditNoteButton
-        /// </summary>
-        private void EditNoteButton_Click(object sender, EventArgs e)
-        {
-            EditNote();
-        }
-
-        /// <summary>
-        /// Добавление заметки при нажатии на кнопку RemoveNoteButton
-        /// </summary>
-        private void RemoveNoteButton_Click(object sender, EventArgs e)
-        {
-            DeleteNote();
-        }
+    
 
         /// <summary>
         /// Добавление заметки, через кнопку
