@@ -306,5 +306,20 @@ namespace NoteAppUI
                 ShowAboutForm();
             }
         }
+
+        private void AddNoteButton_Click(object sender, EventArgs e)
+        {
+            AddNote();
+        }
+
+        private void EditNoteButton_Click(object sender, EventArgs e)
+        {
+            EditNote();
+        }
+
+        private void RemoveNoteButton_Click(object sender, EventArgs e)
+        {
+            DeleteNote();
+        }
     }
 }

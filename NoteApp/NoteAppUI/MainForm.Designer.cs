@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
+            System.Windows.Forms.Button EditNoteButton;
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -51,6 +52,9 @@
             this.TimeCreate = new System.Windows.Forms.DateTimePicker();
             this.TimeUpdate = new System.Windows.Forms.DateTimePicker();
             this.TextNoteTextBox = new System.Windows.Forms.TextBox();
+            this.AddNoteButton = new System.Windows.Forms.Button();
+            this.RemoveNoteButton = new System.Windows.Forms.Button();
+            EditNoteButton = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -64,7 +68,8 @@
             this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1183, 30);
+            this.menuStrip1.Padding = new System.Windows.Forms.Padding(4, 2, 0, 2);
+            this.menuStrip1.Size = new System.Drawing.Size(887, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -73,13 +78,13 @@
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 26);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "File";
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(116, 26);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -90,27 +95,27 @@
             this.editNoteToolStripMenuItem,
             this.removeNoteToolStripMenuItem});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
-            this.editToolStripMenuItem.Size = new System.Drawing.Size(49, 26);
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
             this.editToolStripMenuItem.Text = "Edit";
             // 
             // addNoteToolStripMenuItem
             // 
             this.addNoteToolStripMenuItem.Name = "addNoteToolStripMenuItem";
-            this.addNoteToolStripMenuItem.Size = new System.Drawing.Size(183, 26);
+            this.addNoteToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.addNoteToolStripMenuItem.Text = "Add Note";
             this.addNoteToolStripMenuItem.Click += new System.EventHandler(this.addNoteToolStripMenuItem_Click);
             // 
             // editNoteToolStripMenuItem
             // 
             this.editNoteToolStripMenuItem.Name = "editNoteToolStripMenuItem";
-            this.editNoteToolStripMenuItem.Size = new System.Drawing.Size(183, 26);
+            this.editNoteToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.editNoteToolStripMenuItem.Text = "Edit Note";
             this.editNoteToolStripMenuItem.Click += new System.EventHandler(this.editNoteToolStripMenuItem_Click);
             // 
             // removeNoteToolStripMenuItem
             // 
             this.removeNoteToolStripMenuItem.Name = "removeNoteToolStripMenuItem";
-            this.removeNoteToolStripMenuItem.Size = new System.Drawing.Size(183, 26);
+            this.removeNoteToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.removeNoteToolStripMenuItem.Text = "Remove Note";
             this.removeNoteToolStripMenuItem.Click += new System.EventHandler(this.removeNoteToolStripMenuItem_Click);
             // 
@@ -119,13 +124,13 @@
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.aboutToolStripMenuItem});
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(55, 26);
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.helpToolStripMenuItem.Text = "Help";
             // 
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(133, 26);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
@@ -133,20 +138,18 @@
             // 
             this.CategoryComboBox.FormattingEnabled = true;
             this.CategoryComboBox.IntegralHeight = false;
-            this.CategoryComboBox.Location = new System.Drawing.Point(133, 38);
-            this.CategoryComboBox.Margin = new System.Windows.Forms.Padding(4);
+            this.CategoryComboBox.Location = new System.Drawing.Point(100, 31);
             this.CategoryComboBox.Name = "CategoryComboBox";
-            this.CategoryComboBox.Size = new System.Drawing.Size(227, 24);
+            this.CategoryComboBox.Size = new System.Drawing.Size(171, 21);
             this.CategoryComboBox.TabIndex = 1;
             this.CategoryComboBox.SelectedIndexChanged += new System.EventHandler(this.CategoryComboBox_SelectedIndexChanged);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(16, 42);
-            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label1.Location = new System.Drawing.Point(12, 34);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(107, 17);
+            this.label1.Size = new System.Drawing.Size(82, 13);
             this.label1.TabIndex = 2;
             this.label1.Text = "Show Category:";
             // 
@@ -156,11 +159,9 @@
             | System.Windows.Forms.AnchorStyles.Left)));
             this.NotesListBox.FormattingEnabled = true;
             this.NotesListBox.IntegralHeight = false;
-            this.NotesListBox.ItemHeight = 16;
-            this.NotesListBox.Location = new System.Drawing.Point(16, 75);
-            this.NotesListBox.Margin = new System.Windows.Forms.Padding(4);
+            this.NotesListBox.Location = new System.Drawing.Point(12, 61);
             this.NotesListBox.Name = "NotesListBox";
-            this.NotesListBox.Size = new System.Drawing.Size(344, 516);
+            this.NotesListBox.Size = new System.Drawing.Size(259, 420);
             this.NotesListBox.TabIndex = 3;
             this.NotesListBox.SelectedIndexChanged += new System.EventHandler(this.NotesListBox_SelectedIndexChanged);
             // 
@@ -168,40 +169,36 @@
             // 
             this.NameNote.AutoSize = true;
             this.NameNote.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.NameNote.Location = new System.Drawing.Point(1, 4);
-            this.NameNote.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.NameNote.Location = new System.Drawing.Point(1, 3);
             this.NameNote.Name = "NameNote";
-            this.NameNote.Size = new System.Drawing.Size(0, 42);
+            this.NameNote.Size = new System.Drawing.Size(0, 33);
             this.NameNote.TabIndex = 4;
             // 
             // label3
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label3.Location = new System.Drawing.Point(4, 47);
-            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label3.Location = new System.Drawing.Point(3, 38);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(69, 17);
+            this.label3.Size = new System.Drawing.Size(52, 13);
             this.label3.TabIndex = 5;
             this.label3.Text = "Category:";
             // 
             // NotesCategory
             // 
             this.NotesCategory.AutoSize = true;
-            this.NotesCategory.Location = new System.Drawing.Point(85, 48);
-            this.NotesCategory.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.NotesCategory.Location = new System.Drawing.Point(64, 39);
             this.NotesCategory.Name = "NotesCategory";
-            this.NotesCategory.Size = new System.Drawing.Size(0, 17);
+            this.NotesCategory.Size = new System.Drawing.Size(0, 13);
             this.NotesCategory.TabIndex = 6;
             // 
             // label5
             // 
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label5.Location = new System.Drawing.Point(5, 97);
-            this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label5.Location = new System.Drawing.Point(4, 79);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(62, 17);
+            this.label5.Size = new System.Drawing.Size(47, 13);
             this.label5.TabIndex = 7;
             this.label5.Text = "Created:";
             // 
@@ -209,10 +206,9 @@
             // 
             this.label6.AutoSize = true;
             this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label6.Location = new System.Drawing.Point(248, 97);
-            this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label6.Location = new System.Drawing.Point(186, 79);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(65, 17);
+            this.label6.Size = new System.Drawing.Size(50, 13);
             this.label6.TabIndex = 8;
             this.label6.Text = "Modified:";
             // 
@@ -229,10 +225,9 @@
             this.panel1.Controls.Add(this.label6);
             this.panel1.Controls.Add(this.label3);
             this.panel1.Controls.Add(this.NameNote);
-            this.panel1.Location = new System.Drawing.Point(373, 33);
-            this.panel1.Margin = new System.Windows.Forms.Padding(4);
+            this.panel1.Location = new System.Drawing.Point(280, 27);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(803, 623);
+            this.panel1.Size = new System.Drawing.Size(602, 506);
             this.panel1.TabIndex = 9;
             // 
             // TimeCreate
@@ -241,11 +236,10 @@
             this.TimeCreate.CustomFormat = "dd.MM.yyyy hh:mm";
             this.TimeCreate.Enabled = false;
             this.TimeCreate.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.TimeCreate.Location = new System.Drawing.Point(76, 94);
-            this.TimeCreate.Margin = new System.Windows.Forms.Padding(4);
+            this.TimeCreate.Location = new System.Drawing.Point(57, 76);
             this.TimeCreate.MaxDate = new System.DateTime(9998, 12, 30, 0, 0, 0, 0);
             this.TimeCreate.Name = "TimeCreate";
-            this.TimeCreate.Size = new System.Drawing.Size(163, 22);
+            this.TimeCreate.Size = new System.Drawing.Size(123, 20);
             this.TimeCreate.TabIndex = 13;
             this.TimeCreate.Value = new System.DateTime(2020, 11, 25, 2, 34, 3, 0);
             // 
@@ -255,11 +249,10 @@
             this.TimeUpdate.Enabled = false;
             this.TimeUpdate.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
             this.TimeUpdate.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.TimeUpdate.Location = new System.Drawing.Point(323, 94);
-            this.TimeUpdate.Margin = new System.Windows.Forms.Padding(4);
+            this.TimeUpdate.Location = new System.Drawing.Point(242, 76);
             this.TimeUpdate.MaxDate = new System.DateTime(9998, 12, 23, 0, 0, 0, 0);
             this.TimeUpdate.Name = "TimeUpdate";
-            this.TimeUpdate.Size = new System.Drawing.Size(167, 22);
+            this.TimeUpdate.Size = new System.Drawing.Size(126, 20);
             this.TimeUpdate.TabIndex = 12;
             this.TimeUpdate.Value = new System.DateTime(2020, 11, 25, 2, 34, 16, 0);
             // 
@@ -268,21 +261,66 @@
             this.TextNoteTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.TextNoteTextBox.Location = new System.Drawing.Point(4, 127);
-            this.TextNoteTextBox.Margin = new System.Windows.Forms.Padding(4);
+            this.TextNoteTextBox.Location = new System.Drawing.Point(3, 103);
             this.TextNoteTextBox.Multiline = true;
             this.TextNoteTextBox.Name = "TextNoteTextBox";
             this.TextNoteTextBox.ReadOnly = true;
             this.TextNoteTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.TextNoteTextBox.Size = new System.Drawing.Size(793, 491);
+            this.TextNoteTextBox.Size = new System.Drawing.Size(596, 400);
             this.TextNoteTextBox.TabIndex = 11;
+            // 
+            // AddNoteButton
+            // 
+            this.AddNoteButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.AddNoteButton.BackColor = System.Drawing.SystemColors.MenuBar;
+            this.AddNoteButton.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("AddNoteButton.BackgroundImage")));
+            this.AddNoteButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.AddNoteButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.AddNoteButton.ForeColor = System.Drawing.SystemColors.MenuBar;
+            this.AddNoteButton.Location = new System.Drawing.Point(20, 487);
+            this.AddNoteButton.Name = "AddNoteButton";
+            this.AddNoteButton.Size = new System.Drawing.Size(40, 45);
+            this.AddNoteButton.TabIndex = 10;
+            this.AddNoteButton.UseVisualStyleBackColor = false;
+            this.AddNoteButton.Click += new System.EventHandler(this.AddNoteButton_Click);
+            // 
+            // EditNoteButton
+            // 
+            EditNoteButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            EditNoteButton.BackColor = System.Drawing.SystemColors.MenuBar;
+            EditNoteButton.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("EditNoteButton.BackgroundImage")));
+            EditNoteButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            EditNoteButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            EditNoteButton.ForeColor = System.Drawing.SystemColors.MenuBar;
+            EditNoteButton.Location = new System.Drawing.Point(66, 487);
+            EditNoteButton.Name = "EditNoteButton";
+            EditNoteButton.Size = new System.Drawing.Size(43, 43);
+            EditNoteButton.TabIndex = 11;
+            EditNoteButton.UseVisualStyleBackColor = false;
+            EditNoteButton.Click += new System.EventHandler(this.EditNoteButton_Click);
+            // 
+            // RemoveNoteButton
+            // 
+            this.RemoveNoteButton.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("RemoveNoteButton.BackgroundImage")));
+            this.RemoveNoteButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.RemoveNoteButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.RemoveNoteButton.ForeColor = System.Drawing.SystemColors.MenuBar;
+            this.RemoveNoteButton.Location = new System.Drawing.Point(115, 487);
+            this.RemoveNoteButton.Name = "RemoveNoteButton";
+            this.RemoveNoteButton.Size = new System.Drawing.Size(39, 45);
+            this.RemoveNoteButton.TabIndex = 12;
+            this.RemoveNoteButton.UseVisualStyleBackColor = true;
+            this.RemoveNoteButton.Click += new System.EventHandler(this.RemoveNoteButton_Click);
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ClientSize = new System.Drawing.Size(1183, 665);
+            this.ClientSize = new System.Drawing.Size(887, 540);
+            this.Controls.Add(this.RemoveNoteButton);
+            this.Controls.Add(EditNoteButton);
+            this.Controls.Add(this.AddNoteButton);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.NotesListBox);
             this.Controls.Add(this.label1);
@@ -290,8 +328,7 @@
             this.Controls.Add(this.menuStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
-            this.Margin = new System.Windows.Forms.Padding(4);
-            this.MinimumSize = new System.Drawing.Size(905, 387);
+            this.MinimumSize = new System.Drawing.Size(683, 322);
             this.Name = "MainForm";
             this.Text = "NoteApp";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
@@ -329,6 +366,8 @@
         private System.Windows.Forms.TextBox TextNoteTextBox;
         private System.Windows.Forms.DateTimePicker TimeCreate;
         private System.Windows.Forms.DateTimePicker TimeUpdate;
+        private System.Windows.Forms.Button AddNoteButton;
+        private System.Windows.Forms.Button RemoveNoteButton;
     }
 }
 
