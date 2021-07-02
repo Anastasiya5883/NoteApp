@@ -41,7 +41,7 @@ namespace NoteAppUI
             CategoryComboBox.Items.AddRange(Enum.GetNames(typeof(NoteApp.NotesCategory)));
             CategoryComboBox.Items.Add("All");
             _viewNotes = _project.Notes;
-            _viewNotes = _project.SortNotes(_viewNotes);
+            _viewNotes = _project.SortNotesByTimeLastChange(_viewNotes);
             //UpdateListBox();
         }
         
@@ -153,7 +153,7 @@ namespace NoteAppUI
         /// </summary>
         private void NotesListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            NotesView(_project.SortNotes(_viewNotes, (NotesCategory)CategoryComboBox.SelectedIndex));
+            NotesView(_project.SortNotesByTimeLastChangeAndNoteCategory(_viewNotes, (NotesCategory)CategoryComboBox.SelectedIndex));
         }
 
         /// <summary>
@@ -196,11 +196,11 @@ namespace NoteAppUI
             _viewNotes = _project.Notes;
             if (CategoryComboBox.SelectedIndex != CategoryComboBox.Items.Count - 1)
             {
-                _viewNotes = _project.SortNotes(_viewNotes, (NotesCategory)CategoryComboBox.SelectedIndex);
+                _viewNotes = _project.SortNotesByTimeLastChangeAndNoteCategory(_viewNotes, (NotesCategory)CategoryComboBox.SelectedIndex);
             }
             else
             {
-                _viewNotes = _project.SortNotes(_viewNotes);
+                _viewNotes = _project.SortNotesByTimeLastChange(_viewNotes);
             }
             NotesListBox.Items.Clear();
             for (int i = 0; i < _viewNotes.Count; i++)
