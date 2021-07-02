@@ -68,7 +68,6 @@
             this.label3.Size = new System.Drawing.Size(196, 17);
             this.label3.TabIndex = 2;
             this.label3.Text = "Author: Solovyova Anastasiya";
-            this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
             // label4
             // 

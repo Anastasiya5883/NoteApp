@@ -34,9 +34,5 @@ namespace NoteAppUI
             Process.Start("https://github.com/Anastasiya5883/NoteApp");
         }
 
-        private void label3_Click(object sender, EventArgs e)
-        {
-
-        }
-    }
+     }
 }
