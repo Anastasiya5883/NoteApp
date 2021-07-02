@@ -13,7 +13,7 @@ namespace NoteApp.UnitTests
         {
             //Setup
             var note = new Note();
-            var sourceName = "Мы с Кежиком идем в качалку";
+            var sourceName = "We bought a dog.";
             var expectedName = sourceName;
 
             //Act
@@ -29,7 +29,7 @@ namespace NoteApp.UnitTests
         {
             //Setup
             var note = new Note();
-            var sourceName = "Мы с Кежиком идем в качалку на выходных";
+            var sourceName = "We bought a dog last week.";
             var expectedName = sourceName;
 
             //Act
@@ -93,7 +93,7 @@ namespace NoteApp.UnitTests
         {
             //Setup
             var note = new Note();
-            var sourceName ="Мы с Кежиком идем в качалку и нас никто и ничто не остоновит, ведь это хорошо для здоровья...Наверное :)";
+            var sourceName = "We bought a dog last week and I am very happy. I'll call him Sparky and we'll walk outside every day.:)";
 
             //Assert
             NUnit.Framework.Assert.Throws<ArgumentException>
@@ -112,7 +112,7 @@ namespace NoteApp.UnitTests
             //Setup
             var note = new Note();
             var sourceName = "";
-            var expectedName = "Безымянный";
+            var expectedName = "Nameless";
 
             //Act
             note.Title = sourceName;
