@@ -31,7 +31,7 @@ namespace NoteApp
         /// <summary>
         /// Сортировка по дате изменения и категории заметок
         /// </summary>
-        public List<Note> SortNotes(List<Note> notes, NotesCategory category)
+        public List<Note> SortNotesByTimeLastChangeAndNoteCategory(List<Note> notes, NotesCategory category)
         {
             return notes = notes.Where(item => item.NoteCategory == category).OrderByDescending(item => item.TimeLastChange).ToList();
         }
@@ -39,7 +39,7 @@ namespace NoteApp
         /// <summary>
         /// Сортировка по дате изменения
         /// </summary>
-        public List<Note> SortNotes(List<Note> notes)
+        public List<Note> SortNotesByTimeLastChange(List<Note> notes)
         {
             return notes = notes.OrderByDescending(item => item.TimeLastChange).ToList();
         }
