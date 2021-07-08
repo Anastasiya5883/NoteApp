@@ -16,7 +16,7 @@ namespace NoteApp
         /// <summary>
         /// Путь по умолчанию,куда сохраняется файл
         /// </summary>
-        public static string PathFile()
+        public static string FilePath()
         {
             var filepath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             return filepath + @"\NoteApp\NoteApp.json";
@@ -25,7 +25,7 @@ namespace NoteApp
         /// <summary>
         /// Путь по умолчанию,по которому создается папка для файла
         /// </summary>
-        public static string PathDirectory()
+        public static string DirectoryPath()
         {
             var filepath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             return filepath + @"\NoteApp\";

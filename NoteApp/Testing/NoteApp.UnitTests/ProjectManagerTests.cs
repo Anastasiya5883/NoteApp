@@ -34,7 +34,7 @@ namespace NoteApp.UnitTests
             return sourseProject;
         }
 
-        [Test]
+        [Test(Description = "Положительный тест метода SaveToFile")]
         public void SaveToFile_CorrectProject_FileSavedCorrectly()
         {
             // Setup
@@ -59,7 +59,7 @@ namespace NoteApp.UnitTests
             NUnit.Framework.Assert.AreEqual(expectedFileContent, actualFileContent);
         }
         
-        [Test]
+        [Test(Description = "Положительный тест метода LoadFromFale")]
         public void LoadFromFile_CorrectProject_FileLoadedCorrectly()
         {
             //Setup
@@ -82,7 +82,7 @@ namespace NoteApp.UnitTests
                 });
         }
 
-        [Test]
+        [Test(Description = "Отрицательный тест метода LoadFromPath в ProjectManager")]
         public void LoadFromFile_UnCorrectPath_ReturnEmptyProject()
         {
             //Setup
@@ -95,7 +95,7 @@ namespace NoteApp.UnitTests
             Assert.IsEmpty(actualProject.Notes);
         }
 
-        [Test]
+        [Test(Description = "Отрицательный тест метода LoadFromFile в ProjectManager")]
         public void LoadFromFile_UnCorrectFile_ReturnEmptyProject()
         {
             //Setup
@@ -109,25 +109,25 @@ namespace NoteApp.UnitTests
             Assert.IsEmpty(actualProject.Notes);
         }
 
-        [Test]
+        [Test(Description = "Положительный тест поля FilePath в ProjectManager")]
         public void FilePath_GoodFilePath_ReturnSamePath()
         {
             //Setup
             var expectedPath = Routes.FilePath();
             //Act
-            var actualPath = ProjectManager.PathFile();
+            var actualPath = ProjectManager.FilePath();
 
             //Assert
             Assert.AreEqual(expectedPath, actualPath);
         }
 
-        [Test]
+        [Test(Description = "Положительный тест поля DirectoryPath в ProjectManager")]
         public void DirectoryPath_GoodDirectoryPath_ReturnSameDirectory()
         {
             //Setup
             var expectedPath = Routes.DirectoryPath();
             //Act
-            var actualPath = ProjectManager.PathDirectory();
+            var actualPath = ProjectManager.DirectoryPath();
 
             //Assert
             Assert.AreEqual(expectedPath, actualPath);

@@ -8,7 +8,7 @@ namespace NoteApp.UnitTests
     [TestFixture]
     public class NoteTests
     {
-        [Test]
+        [Test(Description ="Положительный тест поля Name")]
         public void Name_GoodName_ReturnsSameName()
         {
             //Setup
@@ -24,7 +24,7 @@ namespace NoteApp.UnitTests
             NUnit.Framework.Assert.AreEqual(expectedName, actualName);
         }
 
-        [Test]
+        [Test(Description = "Положительный тест поля TextNote")]
         public void Text_GoodText_ReturnsSameText()
         {
             //Setup
@@ -40,7 +40,7 @@ namespace NoteApp.UnitTests
             NUnit.Framework.Assert.AreEqual(expectedName, actualName);
         }
 
-        [Test]
+        [Test(Description = "Положительный тест поля NoteCategory")]
         public void Category_GoodCategory_ReturnsSameCategory()
         {
             //Setup
@@ -56,7 +56,7 @@ namespace NoteApp.UnitTests
             NUnit.Framework.Assert.AreEqual(expectedName, actualName);
         }
 
-        [Test]
+        [Test(Description = "Положительный тест поля TimeCreate")]
         public void Create_GoodTimeCreate_ReturnsSameDate()
         {
             //Setup
@@ -72,7 +72,7 @@ namespace NoteApp.UnitTests
             NUnit.Framework.Assert.AreEqual(expectedName, actualName);
         }
 
-        [Test]
+        [Test(Description = "Положительный тест поля TimeLastChange")]
         public void Modify_GoodTimeModify_ReturnsSameDate()
         {
             //Setup
@@ -88,7 +88,7 @@ namespace NoteApp.UnitTests
             NUnit.Framework.Assert.AreEqual(expectedName, actualName);
         }
 
-        [Test]
+        [Test(Description = "Негативный тест поля Name")]
         public void Name_BadName_ThrowsException()
         {
             //Setup
@@ -106,7 +106,7 @@ namespace NoteApp.UnitTests
             );
         }
 
-        [Test]
+        [Test(Description = "Положительный тест поля Title при отсутствии названия заметки")]
         public void Name_NoneName_ReturnsBasicName()
         {
             //Setup
@@ -122,7 +122,7 @@ namespace NoteApp.UnitTests
             NUnit.Framework.Assert.AreEqual(expectedName, actualName);
         }
 
-        [Test]
+        [Test(Description = "Положительный тест метода Clone")]
         public void Clone_GoodClone_ReturnSameData()
         {
             //Setup

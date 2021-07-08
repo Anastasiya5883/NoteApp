@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace NoteApp.UnitTests
 {
-    class Routes
+    public static class Routes
     {
         public static string DataFolderForTest()
         {

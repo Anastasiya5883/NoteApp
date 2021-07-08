@@ -31,9 +31,9 @@ namespace NoteAppUI
         /// <summary>
         /// Путь к файлу с данными
         /// </summary>
-        private readonly string _filePath = ProjectManager.PathFile();
+        private readonly string _filePath = ProjectManager.FilePath();
 
-        private readonly string _directoryPath = ProjectManager.PathDirectory();
+        private readonly string _directoryPath = ProjectManager.DirectoryPath();
 
         public MainForm()
         {
@@ -148,7 +148,7 @@ namespace NoteAppUI
             CategoryComboBox.SelectedIndex = CategoryComboBox.Items.Count - 1;
             UpdateListBox();
             LastOpenNote();
-            ProjectManager.SaveToFile(_project, ProjectManager.PathFile(), _directoryPath);
+            ProjectManager.SaveToFile(_project, ProjectManager.FilePath(), _directoryPath);
         }
 
         /// <summary>
