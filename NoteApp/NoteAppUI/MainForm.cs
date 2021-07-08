@@ -51,16 +51,17 @@ namespace NoteAppUI
         private void AddNote()
         {
             var Note = new Note { };
-            var noteForm = new NoteForm() { TepmNote = Note };
+            var noteForm = new NoteForm() { TempNote = Note };
             var dialogResult = noteForm.ShowDialog();
             if (dialogResult != DialogResult.OK)
             {
                 return;
             }
-            _project.Notes.Add(noteForm.TepmNote);
-            _viewNotes.Add(noteForm.TepmNote);
-            NotesListBox.Items.Add(noteForm.TepmNote.Title);
+            _project.Notes.Add(noteForm.TempNote);
+            _viewNotes.Add(noteForm.TempNote);
+            NotesListBox.Items.Add(noteForm.TempNote.Title);
             UpdateListBox();
+            NotesListBox.SelectedIndex = _viewNotes.IndexOf(noteForm.TempNote);
             ProjectManager.SaveToFile(_project, _filePath, _directoryPath);
         }
 
@@ -78,7 +79,7 @@ namespace NoteAppUI
             {
                 var selectIndex = NotesListBox.SelectedIndex;
                 var selectNote = _viewNotes[selectIndex];
-                var updateNote = new NoteForm { TepmNote = selectNote };
+                var updateNote = new NoteForm { TempNote = selectNote };
                 var dialogResult = updateNote.ShowDialog();
                 if (dialogResult != DialogResult.OK)
                 {
@@ -88,12 +89,13 @@ namespace NoteAppUI
                 var noteSelectIndex = _project.Notes.IndexOf(selectNote);
                 _viewNotes.RemoveAt(selectIndex);
                 _project.Notes.RemoveAt(noteSelectIndex);
-                _viewNotes.Insert(selectIndex, updateNote.TepmNote);
-                _project.Notes.Insert(noteSelectIndex, updateNote.TepmNote);
-                NotesListBox.Items.Insert(selectIndex, updateNote.TepmNote.Title);
+                _viewNotes.Insert(selectIndex, updateNote.TempNote);
+                _project.Notes.Insert(noteSelectIndex, updateNote.TempNote);
+                NotesListBox.Items.Insert(selectIndex, updateNote.TempNote.Title);
                 _project.SelectedIndex = NotesListBox.SelectedIndex;
                 ProjectManager.SaveToFile(_project, _filePath, _directoryPath);
                 UpdateListBox();
+                NotesListBox.SelectedIndex = _viewNotes.IndexOf(updateNote.TempNote);
                 if (NotesListBox.Items.Count != 0)
                 {
                     NotesListBox.SelectedIndex = 0;
@@ -131,8 +133,9 @@ namespace NoteAppUI
                 ProjectManager.SaveToFile(_project, _filePath, _directoryPath);
                 if (NotesListBox.Items.Count != 0)
                 {
-                    NotesListBox.SelectedIndex = 0;
+                    NotesListBox.ClearSelected();
                 }
+                ClearingFields();
             }
         }
 

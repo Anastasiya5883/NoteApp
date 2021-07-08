@@ -21,7 +21,7 @@ namespace NoteAppUI
         /// <summary>
         /// Временное хранилище для данных
         /// </summary>
-        public Note TepmNote
+        public Note TempNote
         {
             get => tempNote;
             set
@@ -83,12 +83,12 @@ namespace NoteAppUI
         {
             try
             {
-                TepmNote.Title = NameNoteTextBox.Text;
-                TepmNote.TimeCreate = TimeCreateDateTimePicker.Value;
-                TepmNote.TimeLastChange = DateTime.Now;
-                TepmNote.TextNote = TextNoteTextBox.Text;
+                TempNote.Title = NameNoteTextBox.Text;
+                TempNote.TimeCreate = TimeCreateDateTimePicker.Value;
+                TempNote.TimeLastChange = DateTime.Now;
+                TempNote.TextNote = TextNoteTextBox.Text;
                 var notesCategory = (NotesCategory) NoteCategoryComboBox.SelectedItem;
-                TepmNote.NoteCategory = notesCategory ;
+                TempNote.NoteCategory = notesCategory ;
                 DialogResult = DialogResult.OK;
             }
             catch (Exception e)
