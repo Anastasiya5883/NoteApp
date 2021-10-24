@@ -7,7 +7,7 @@ namespace NoteApp
     /// Класс Запись. Здесь хранится информация о название заметки,ее категории
     /// содержании,даты создания и дате изменения
     /// </summary>
-    public class Note : ICloneable, IEquatable<Note>
+    public class Note : ICloneable//, IEquatable<Note>
     {
         /// <summary>
         /// Название заметки
@@ -104,9 +104,9 @@ namespace NoteApp
             return false;
         }
 
-        public bool Equals(Note other)
-        {
-            throw new NotImplementedException();
-        }
+        //public bool Equals(Note other)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }
