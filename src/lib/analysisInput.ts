@@ -40,7 +40,7 @@ export function prepareAnalysisInput(state: AnalysisInputState): PreparedAnalysi
     && normalized.includes('противореч')
 
   return {
-    sourceText: hasFile ? state.fileContent : state.prompt,
+    sourceText: state.fileContent ?? state.prompt,
     fileName: hasFile ? state.fileName : null,
     options: hasFile && criticalOnly ? { contradictionSeverity: 'critical' } : {},
   }
