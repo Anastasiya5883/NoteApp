@@ -3,21 +3,30 @@ import { extractTextFromFile, FileReadError } from '../lib/fileReader'
 import { SAMPLES } from '../lib/samples'
 
 interface InputStepProps {
-  text: string
-  setText: (t: string) => void
+  prompt: string
+  setPrompt: (prompt: string) => void
   fileName: string | null
+  canAnalyze: boolean
   onFileLoaded: (fileName: string, content: string) => void
   onUseSample: (text: string) => void
   onAnalyze: () => void
 }
 
-export default function InputStep({ text, setText, fileName, onFileLoaded, onUseSample, onAnalyze }: InputStepProps) {
+export default function InputStep({
+  prompt,
+  setPrompt,
+  fileName,
+  canAnalyze,
+  onFileLoaded,
+  onUseSample,
+  onAnalyze,
+}: InputStepProps) {
   const fileRef = useRef<HTMLInputElement>(null)
   const readGenerationRef = useRef(0)
   const [error, setError] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
   const [isReading, setIsReading] = useState(false)
-  const words = text.trim() ? text.trim().split(/\s+/).length : 0
+  const words = prompt.trim() ? prompt.trim().split(/\s+/).length : 0
 
   useEffect(() => () => {
     readGenerationRef.current += 1
@@ -80,12 +89,12 @@ export default function InputStep({ text, setText, fileName, onFileLoaded, onUse
         aria-busy={isReading}
       >
         <textarea
-          value={text}
+          value={prompt}
           onChange={(e) => {
-            setText(e.target.value)
+            setPrompt(e.target.value)
             setError(null)
           }}
-          placeholder="Вставьте текст технического задания или описание задачи. Например: «Требуется доработать документ...»"
+          placeholder="Напишите, как проанализировать ТЗ. Например: «Найди только критические противоречия»"
           rows={12}
           disabled={isReading}
           className="h-64 w-full resize-y rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-800 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 disabled:cursor-wait disabled:opacity-70"
@@ -156,7 +165,7 @@ export default function InputStep({ text, setText, fileName, onFileLoaded, onUse
       <div className="mt-8 flex justify-center">
         <button
           onClick={onAnalyze}
-          disabled={isReading || !text.trim()}
+          disabled={isReading || !canAnalyze}
           className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

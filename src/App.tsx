@@ -7,6 +7,13 @@ import LoginPage from './components/LoginPage'
 import ProfilePage from './components/ProfilePage'
 import { useAuth } from './context/AuthContext'
 import { analyzeText, type AnalysisResult } from './lib/analyzer'
+import {
+  createAnalysisInput,
+  prepareAnalysisInput,
+  setAnalysisFile,
+  setAnalysisPrompt,
+  setAnalysisSample,
+} from './lib/analysisInput'
 import { saveHistoryEntry, type HistoryDetail } from './lib/history'
 
 type Step = 'input' | 'analyzing' | 'results'
@@ -16,54 +23,48 @@ export default function App() {
   const { isAuthenticated, isLoading, username } = useAuth()
   const [view, setView] = useState<View>('assistant')
   const [step, setStep] = useState<Step>('input')
-  const [text, setText] = useState('')
-  const [fileName, setFileName] = useState<string | null>(null)
+  const [input, setInput] = useState(createAnalysisInput)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
 
   const handleAnalyze = useCallback(() => {
-    if (!text.trim()) return
-    const sourceText = text
-    const sourceFileName = fileName
+    const prepared = prepareAnalysisInput(input)
+    if (!prepared.sourceText.trim()) return
     setSaveError(null)
     setStep('analyzing')
     setTimeout(() => {
-      const res = analyzeText(sourceText)
+      const res = analyzeText(prepared.sourceText, prepared.options)
       setResult(res)
       setStep('results')
-      if (sourceFileName) {
-        void saveHistoryEntry(sourceFileName, sourceText, res).catch((error) => {
+      if (prepared.fileName) {
+        void saveHistoryEntry(prepared.fileName, prepared.sourceText, res).catch((error) => {
           const message = error instanceof Error ? error.message : 'Не удалось сохранить анализ'
           setSaveError(`Результат готов, но не сохранён в истории: ${message}`)
         })
       }
     }, 2600)
-  }, [fileName, text])
+  }, [input])
 
   const handleReset = useCallback(() => {
     setView('assistant')
     setStep('input')
-    setText('')
-    setFileName(null)
+    setInput(createAnalysisInput())
     setResult(null)
     setSaveError(null)
   }, [])
 
   const handleFileLoaded = useCallback((name: string, content: string) => {
-    setFileName(name)
-    setText(content)
+    setInput((current) => setAnalysisFile(current, name, content))
     setSaveError(null)
   }, [])
 
   const handleUseSample = useCallback((sampleText: string) => {
-    setFileName(null)
-    setText(sampleText)
+    setInput((current) => setAnalysisSample(current, sampleText))
     setSaveError(null)
   }, [])
 
   const handleOpenHistory = useCallback((entry: HistoryDetail) => {
-    setText(entry.sourceText)
-    setFileName(null)
+    setInput(createAnalysisInput())
     setResult(entry.result)
     setSaveError(null)
     setStep('results')
@@ -102,9 +103,10 @@ export default function App() {
 
         {view === 'assistant' && step === 'input' && (
           <InputStep
-            text={text}
-            setText={setText}
-            fileName={fileName}
+            prompt={input.prompt}
+            setPrompt={(prompt) => setInput((current) => setAnalysisPrompt(current, prompt))}
+            fileName={input.fileName}
+            canAnalyze={Boolean(input.fileContent?.trim() || input.prompt.trim())}
             onFileLoaded={handleFileLoaded}
             onUseSample={handleUseSample}
             onAnalyze={handleAnalyze}
