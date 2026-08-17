@@ -129,6 +129,40 @@ function SectionTags({ sections }: { sections: AnalysisResult['sections'] }) {
   )
 }
 
+function ContradictionCards({
+  contradictions,
+}: {
+  contradictions: AnalysisResult['contradictions']
+}) {
+  if (contradictions.length === 0) {
+    return (
+      <p className="rounded-lg border border-green-200 bg-green-50 px-4 py-4 text-sm font-medium text-green-700">
+        Явных противоречий не выявлено.
+      </p>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {contradictions.map((item) => (
+        <article key={item.id} className="rounded-xl border border-rose-200 bg-rose-50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-rose-700">
+            {item.category === 'logical' ? 'Логическое противоречие' : 'Числовое противоречие'}
+          </p>
+          <h4 className="mt-1 font-semibold text-slate-900">{item.title}</h4>
+          <p className="mt-1 text-sm text-slate-700">{item.explanation}</p>
+          <blockquote className="mt-3 border-l-2 border-rose-300 pl-3 text-sm text-slate-700">
+            {item.quotes[0]}
+          </blockquote>
+          <blockquote className="mt-2 border-l-2 border-rose-300 pl-3 text-sm text-slate-700">
+            {item.quotes[1]}
+          </blockquote>
+        </article>
+      ))}
+    </div>
+  )
+}
+
 function GapCards({ gaps }: { gaps: AnalysisResult['gaps'] }) {
   if (gaps.length === 0) {
     return (
@@ -276,11 +310,12 @@ export default function ResultsStep({ result, onReset, saveError }: ResultsStepP
       )}
 
       {/* Статистика */}
-      <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <StatCard label="Слов в ТЗ" value={result.words} color="border-slate-200 bg-white" />
         <StatCard label="Объектов" value={result.entities.length} color="border-blue-200 bg-blue-50" />
         <StatCard label="Реквизитов" value={result.attributes.length} color="border-violet-200 bg-violet-50" />
         <StatCard label="Разделов" value={result.sections.length} color="border-amber-200 bg-amber-50" />
+        <StatCard label="Противоречий" value={result.contradictions.length} color="border-rose-200 bg-rose-50" />
         <StatCard label="Пробелов" value={result.gaps.length} color="border-rose-200 bg-rose-50" />
       </div>
 
@@ -298,6 +333,11 @@ export default function ResultsStep({ result, onReset, saveError }: ResultsStepP
       <section className="mb-8">
         <h3 className="mb-3 text-lg font-semibold text-slate-800">Затронутые разделы конфигурации</h3>
         <SectionTags sections={result.sections} />
+      </section>
+
+      <section className="mb-8">
+        <h3 className="mb-3 text-lg font-semibold text-slate-800">Противоречия в требованиях</h3>
+        <ContradictionCards contradictions={result.contradictions} />
       </section>
 
       <section className="mb-8">
