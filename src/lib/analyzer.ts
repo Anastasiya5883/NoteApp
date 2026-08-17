@@ -149,11 +149,39 @@ const SECTIONS: Array<{ triggers: string[]; name: string }> = [
 
 const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-const splitSentences = (text: string): string[] =>
-  text
-    .split(/(?<=[.!?])\s+/)
-    .map((s) => s.trim())
-    .filter(Boolean)
+interface SentenceSpan {
+  text: string
+  start: number
+  end: number
+}
+
+const splitSentences = (text: string): SentenceSpan[] => {
+  const sentences: SentenceSpan[] = []
+  const separatorRe = /(?<=[.!?])\s+/g
+  let start = 0
+  let separator: RegExpExecArray | null
+
+  const addSentence = (end: number) => {
+    const raw = text.slice(start, end)
+    const sentence = raw.trim()
+    if (sentence) {
+      const leadingWhitespace = raw.length - raw.trimStart().length
+      sentences.push({
+        text: sentence,
+        start: start + leadingWhitespace,
+        end: start + leadingWhitespace + sentence.length,
+      })
+    }
+  }
+
+  while ((separator = separatorRe.exec(text)) !== null) {
+    addSentence(separator.index)
+    start = separatorRe.lastIndex
+  }
+  addSentence(text.length)
+
+  return sentences
+}
 
 const countOccurrences = (text: string, needle: string): number => {
   const re = new RegExp(esc(needle), 'gi')
@@ -161,9 +189,30 @@ const countOccurrences = (text: string, needle: string): number => {
   return matches ? matches.length : 0
 }
 
-const sentenceWith = (sentences: string[], needle: string): string => {
-  const found = sentences.find((s) => s.toLowerCase().includes(needle.toLowerCase()))
-  return found ?? ''
+const sentenceWith = (sentences: SentenceSpan[], needle: string): string => {
+  const found = sentences.find((sentence) =>
+    sentence.text.toLowerCase().includes(needle.toLowerCase()),
+  )
+  return found?.text ?? ''
+}
+
+const sentenceAt = (sentences: SentenceSpan[], index: number): string => {
+  let low = 0
+  let high = sentences.length - 1
+
+  while (low <= high) {
+    const middle = low + Math.floor((high - low) / 2)
+    const sentence = sentences[middle]
+    if (index < sentence.start) {
+      high = middle - 1
+    } else if (index >= sentence.end) {
+      low = middle + 1
+    } else {
+      return sentence.text
+    }
+  }
+
+  return ''
 }
 
 const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
@@ -205,7 +254,7 @@ function typeFromTrigger(raw: string, trigger: string, type: EntityType): Entity
 
 // ---------- Сбор кандидатов ----------
 
-function collectCandidates(text: string, sentences: string[]): Candidate[] {
+function collectCandidates(text: string, sentences: SentenceSpan[]): Candidate[] {
   const candidates: Candidate[] = []
   const lower = text.toLowerCase()
 
@@ -226,7 +275,7 @@ function collectCandidates(text: string, sentences: string[]): Candidate[] {
       name,
       type: explicitType ?? typeFromName(name),
       confidence: explicitType ? 'высокая' : typeFromName(name) ? 'средняя' : 'низкая',
-      context: sentenceWith(sentences, rawPhrase),
+      context: sentenceAt(sentences, m.index),
       count: 1,
       kind: 'quoted',
     })
@@ -241,7 +290,7 @@ function collectCandidates(text: string, sentences: string[]): Candidate[] {
       name: word,
       type: typeFromName(word),
       confidence: typeFromName(word) ? 'средняя' : 'низкая',
-      context: sentenceWith(sentences, word),
+      context: sentenceAt(sentences, m.index),
       count: 1,
       kind: 'camel',
     })
@@ -296,7 +345,7 @@ function dedupeEntities(candidates: Candidate[]): FoundEntity[] {
   )
 }
 
-function collectAttributes(text: string, sentences: string[]): FoundAttribute[] {
+function collectAttributes(text: string, sentences: SentenceSpan[]): FoundAttribute[] {
   const map = new Map<string, FoundAttribute>()
   const lower = text.toLowerCase()
 
