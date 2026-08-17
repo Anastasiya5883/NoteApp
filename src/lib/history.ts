@@ -24,7 +24,16 @@ interface ErrorResponse {
   error?: string
 }
 
+type LegacyAnalysisResult = Omit<AnalysisResult, 'contradictions'> & {
+  contradictions?: AnalysisResult['contradictions']
+}
+
 export class HistoryApiError extends Error {}
+
+export function normalizeHistoryResult(result: LegacyAnalysisResult): AnalysisResult {
+  if (Array.isArray(result.contradictions)) return result as AnalysisResult
+  return { ...result, contradictions: [] }
+}
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   let response: Response
@@ -68,6 +77,7 @@ export async function getHistoryEntries(): Promise<HistorySummary[]> {
 
 export async function getHistoryEntry(id: number): Promise<HistoryDetail> {
   const response = await request<{ entry: HistoryDetail }>(`/api/history/${id}`)
+  response.entry.result = normalizeHistoryResult(response.entry.result as LegacyAnalysisResult)
   return response.entry
 }
 

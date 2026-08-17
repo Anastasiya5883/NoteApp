@@ -3,6 +3,7 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createSessionToken, hashPassword, hashSessionToken, verifyPassword } from './auth.js'
+import { isAnalysisResult } from './analysisValidation.js'
 import { isSupportedHistoryFileName } from './fileValidation.js'
 import {
   createSession,
@@ -147,24 +148,6 @@ function parseHistoryId(value: unknown): number | null {
   if (typeof value !== 'string') return null
   const id = Number(value)
   return Number.isSafeInteger(id) && id > 0 ? id : null
-}
-
-function isAnalysisResult(value: unknown): value is {
-  words: number
-  entities: unknown[]
-  attributes: unknown[]
-  sections: unknown[]
-  gaps: unknown[]
-  recommendations: unknown[]
-} {
-  if (!value || typeof value !== 'object') return false
-  const result = value as Record<string, unknown>
-  return Number.isFinite(result.words)
-    && Array.isArray(result.entities)
-    && Array.isArray(result.attributes)
-    && Array.isArray(result.sections)
-    && Array.isArray(result.gaps)
-    && Array.isArray(result.recommendations)
 }
 
 const toHistorySummary = (entry: ReturnType<typeof listHistoryEntries>[number]) => ({
