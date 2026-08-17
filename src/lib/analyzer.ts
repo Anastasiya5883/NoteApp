@@ -2,7 +2,7 @@
 // Ищет объекты конфигурации, реквизиты, разделы и пробелы в требованиях.
 // В финальной версии заменяется вызовом AI-модели с доступом к структуре конфигурации.
 
-import { findContradictions, type Contradiction } from './contradictions'
+import { findContradictions, type Contradiction, type ContradictionSeverity } from './contradictions'
 
 export type EntityType =
   | 'Документ'
@@ -58,6 +58,10 @@ export interface AnalysisResult {
   contradictions: Contradiction[]
   gaps: Gap[]
   recommendations: Recommendation[]
+}
+
+export interface AnalysisOptions {
+  contradictionSeverity?: ContradictionSeverity
 }
 
 // ---------- Словари ----------
@@ -514,7 +518,7 @@ function buildRecommendations(ctx: CheckContext, gaps: Gap[]): Recommendation[] 
 
 // ---------- Точка входа ----------
 
-export function analyzeText(text: string): AnalysisResult {
+export function analyzeText(text: string, options?: AnalysisOptions): AnalysisResult {
   const normalized = text.trim()
   const words = normalized.split(/\s+/).filter(Boolean).length
   const lower = normalized.toLowerCase()
@@ -524,7 +528,11 @@ export function analyzeText(text: string): AnalysisResult {
   const entities = dedupeEntities(candidates)
   const attributes = collectAttributes(normalized, sentences)
   const sections = collectSections(normalized)
-  const contradictions = findContradictions(normalized)
+  const contradictions = findContradictions(normalized).filter(
+    (contradiction) =>
+      options?.contradictionSeverity === undefined ||
+      contradiction.severity === options.contradictionSeverity,
+  )
 
   const ctx: CheckContext = {
     text: normalized,
