@@ -94,9 +94,11 @@ export async function copyToClipboard(content: string): Promise<boolean> {
       ta.style.opacity = '0'
       document.body.appendChild(ta)
       ta.select()
-      document.execCommand('copy')
-      document.body.removeChild(ta)
-      return true
+      try {
+        return document.execCommand('copy')
+      } finally {
+        document.body.removeChild(ta)
+      }
     } catch {
       return false
     }

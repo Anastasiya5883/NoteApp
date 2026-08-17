@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import Header from './components/Header'
 import InputStep from './components/InputStep'
 import AnalyzingStep from './components/AnalyzingStep'
@@ -7,6 +7,7 @@ import LoginPage from './components/LoginPage'
 import ProfilePage from './components/ProfilePage'
 import { useAuth } from './context/AuthContext'
 import { analyzeText, type AnalysisResult } from './lib/analyzer'
+import { startAnalysisRun } from './lib/analysisRun'
 import { saveHistoryEntry, type HistoryDetail } from './lib/history'
 
 type Step = 'input' | 'analyzing' | 'results'
@@ -14,12 +15,32 @@ type View = 'assistant' | 'profile'
 
 export default function App() {
   const { isAuthenticated, isLoading, username } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-50 to-white">
+        <div className="h-9 w-9 animate-spin rounded-full border-4 border-indigo-100 border-t-indigo-600" aria-label="Проверка авторизации" />
+      </div>
+    )
+  }
+
+  if (!isAuthenticated || !username) {
+    return <LoginPage />
+  }
+
+  return <AuthenticatedAssistant key={username} username={username} />
+}
+
+function AuthenticatedAssistant({ username }: { username: string }) {
   const [view, setView] = useState<View>('assistant')
   const [step, setStep] = useState<Step>('input')
   const [text, setText] = useState('')
   const [fileName, setFileName] = useState<string | null>(null)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const cancelAnalysisRef = useRef<(() => void) | null>(null)
+
+  useEffect(() => () => cancelAnalysisRef.current?.(), [])
 
   const handleAnalyze = useCallback(() => {
     if (!text.trim()) return
@@ -27,20 +48,27 @@ export default function App() {
     const sourceFileName = fileName
     setSaveError(null)
     setStep('analyzing')
-    setTimeout(() => {
-      const res = analyzeText(sourceText)
-      setResult(res)
-      setStep('results')
-      if (sourceFileName) {
-        void saveHistoryEntry(sourceFileName, sourceText, res).catch((error) => {
-          const message = error instanceof Error ? error.message : 'Не удалось сохранить анализ'
-          setSaveError(`Результат готов, но не сохранён в истории: ${message}`)
-        })
-      }
-    }, 2600)
+    cancelAnalysisRef.current?.()
+    cancelAnalysisRef.current = startAnalysisRun({
+      delayMs: 2600,
+      analyze: () => analyzeText(sourceText),
+      onResult: (nextResult) => {
+        setResult(nextResult)
+        setStep('results')
+      },
+      save: sourceFileName
+        ? (nextResult, signal) => saveHistoryEntry(sourceFileName, sourceText, nextResult, signal).then(() => undefined)
+        : undefined,
+      onSaveError: (error) => {
+        const message = error instanceof Error ? error.message : 'Не удалось сохранить анализ'
+        setSaveError(`Результат готов, но не сохранён в истории: ${message}`)
+      },
+    })
   }, [fileName, text])
 
   const handleReset = useCallback(() => {
+    cancelAnalysisRef.current?.()
+    cancelAnalysisRef.current = null
     setView('assistant')
     setStep('input')
     setText('')
@@ -69,18 +97,6 @@ export default function App() {
     setStep('results')
     setView('assistant')
   }, [])
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-50 to-white">
-        <div className="h-9 w-9 animate-spin rounded-full border-4 border-indigo-100 border-t-indigo-600" aria-label="Проверка авторизации" />
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    return <LoginPage />
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">

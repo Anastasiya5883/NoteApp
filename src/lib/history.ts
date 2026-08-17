@@ -36,7 +36,8 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
         ? { 'Content-Type': 'application/json', ...options.headers }
         : options?.headers,
     })
-  } catch {
+  } catch (error) {
+    if (options?.signal?.aborted) throw error
     throw new HistoryApiError('Сервер недоступен. Попробуйте ещё раз')
   }
 
@@ -53,10 +54,12 @@ export async function saveHistoryEntry(
   fileName: string,
   sourceText: string,
   result: AnalysisResult,
+  signal?: AbortSignal,
 ): Promise<HistorySummary> {
   const response = await request<{ entry: HistorySummary }>('/api/history', {
     method: 'POST',
     body: JSON.stringify({ fileName, sourceText, result }),
+    signal,
   })
   return response.entry
 }

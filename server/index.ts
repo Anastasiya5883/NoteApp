@@ -3,6 +3,7 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createSessionToken, hashPassword, hashSessionToken, verifyPassword } from './auth.js'
+import { AuthRateLimiter, parseCredentials } from './authPolicy.js'
 import { isSupportedHistoryFileName } from './fileValidation.js'
 import {
   createSession,
@@ -21,6 +22,7 @@ const app = express()
 const port = Number(process.env.PORT) || 3001
 const sessionCookie = 'tz-assistant-session'
 const sessionLifetimeMs = 7 * 24 * 60 * 60 * 1000
+const authRateLimiter = new AuthRateLimiter()
 
 app.disable('x-powered-by')
 // JSON escaping can expand a valid 2 MB source text several times; the source
@@ -53,11 +55,14 @@ function openSession(res: Response, userId: number): void {
   res.cookie(sessionCookie, token, cookieOptions())
 }
 
-function getCredentials(req: Request): { username: string; password: string } | null {
-  const username = typeof req.body?.username === 'string' ? req.body.username.trim() : ''
-  const password = typeof req.body?.password === 'string' ? req.body.password : ''
-  if (!username || !password.trim()) return null
-  return { username, password }
+function consumeAuthAttempt(req: Request, res: Response, username: string): boolean {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown'
+  const result = authRateLimiter.attempt(ip, username)
+  if (result.allowed) return true
+
+  res.set('Retry-After', String(Math.ceil(result.retryAfterMs / 1_000)))
+  res.status(429).json({ error: 'Слишком много попыток. Попробуйте позже' })
+  return false
 }
 
 function requireAuth(req: Request, res: Response, next: NextFunction): void {
@@ -80,11 +85,13 @@ function requireAuth(req: Request, res: Response, next: NextFunction): void {
 
 app.post('/api/auth/register', async (req, res, next) => {
   try {
-    const credentials = getCredentials(req)
-    if (!credentials) {
-      res.status(400).json({ error: 'Введите логин и пароль' })
+    const parsedCredentials = parseCredentials(req.body)
+    if (!parsedCredentials.ok) {
+      res.status(400).json({ error: parsedCredentials.error })
       return
     }
+    const credentials = parsedCredentials.credentials
+    if (!consumeAuthAttempt(req, res, credentials.username)) return
     if (findUserByUsername(credentials.username)) {
       res.status(409).json({ error: 'Пользователь с таким логином уже существует' })
       return
@@ -101,6 +108,7 @@ app.post('/api/auth/register', async (req, res, next) => {
       }
       throw error
     }
+    authRateLimiter.resetAccount(credentials.username)
     openSession(res, user.id)
     res.status(201).json({ user: { username: user.username } })
   } catch (error) {
@@ -110,11 +118,13 @@ app.post('/api/auth/register', async (req, res, next) => {
 
 app.post('/api/auth/login', async (req, res, next) => {
   try {
-    const credentials = getCredentials(req)
-    if (!credentials) {
-      res.status(400).json({ error: 'Введите логин и пароль' })
+    const parsedCredentials = parseCredentials(req.body)
+    if (!parsedCredentials.ok) {
+      res.status(400).json({ error: parsedCredentials.error })
       return
     }
+    const credentials = parsedCredentials.credentials
+    if (!consumeAuthAttempt(req, res, credentials.username)) return
 
     const user = findUserByUsername(credentials.username)
     const isValid = user
@@ -125,6 +135,7 @@ app.post('/api/auth/login', async (req, res, next) => {
       return
     }
 
+    authRateLimiter.resetAccount(credentials.username)
     openSession(res, user.id)
     res.json({ user: { username: user.username } })
   } catch (error) {

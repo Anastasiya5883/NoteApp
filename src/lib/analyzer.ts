@@ -227,7 +227,7 @@ function collectCandidates(text: string, sentences: string[]): Candidate[] {
       type: explicitType ?? typeFromName(name),
       confidence: explicitType ? 'высокая' : typeFromName(name) ? 'средняя' : 'низкая',
       context: sentenceWith(sentences, rawPhrase),
-      count: countOccurrences(text, rawPhrase),
+      count: 1,
       kind: 'quoted',
     })
   }
@@ -242,7 +242,7 @@ function collectCandidates(text: string, sentences: string[]): Candidate[] {
       type: typeFromName(word),
       confidence: typeFromName(word) ? 'средняя' : 'низкая',
       context: sentenceWith(sentences, word),
-      count: countOccurrences(text, word),
+      count: 1,
       kind: 'camel',
     })
   }
