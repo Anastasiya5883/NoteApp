@@ -31,6 +31,19 @@ export function buildMarkdown(result: AnalysisResult): string {
     lines.push('', result.sections.map((s) => `- ${s.name}`).join('\n'))
   }
 
+  lines.push('', '## Противоречия в требованиях')
+  if (result.contradictions.length === 0) {
+    lines.push('', 'Явных противоречий не выявлено.')
+  } else {
+    for (const contradiction of result.contradictions) {
+      const category = contradiction.category === 'logical' ? 'логическое' : 'числовое'
+      lines.push('', `### ${contradiction.title} (${category})`)
+      lines.push('', contradiction.explanation)
+      lines.push('', `> **Фрагмент 1:** ${contradiction.quotes[0]}`)
+      lines.push('', `> **Фрагмент 2:** ${contradiction.quotes[1]}`)
+    }
+  }
+
   lines.push('', '## Пробелы в требованиях и вопросы для уточнения')
   if (result.gaps.length === 0) {
     lines.push('', 'Существенных пробелов не выявлено.')
