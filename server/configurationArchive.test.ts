@@ -53,6 +53,15 @@ test('reads Configuration.xml from the archive root and discards non-metadata pa
   assert.deepEqual(result.objects.map(({ kind, name }) => [kind, name]), [['Catalog', 'Номенклатура']])
 })
 
+test('does not import metadata from an unrelated wrapper when configuration is at the archive root', async () => {
+  const result = await readConfigurationArchive(archive({
+    'Configuration.xml': configurationXml,
+    'Extra/Catalogs/Injected.xml': catalogXml,
+  }), 'root-with-extra.zip')
+
+  assert.deepEqual(result.objects, [])
+})
+
 test('reads an export nested under exactly one wrapper directory', async () => {
   const result = await readConfigurationArchive(archive({
     'TradeExport/Configuration.xml': configurationXml,
@@ -95,6 +104,15 @@ test('rejects declared or streamed bytes over the injected expanded-byte limit',
   await rejectsWithCode(readConfigurationArchive(archive({
     'Configuration.xml': configurationXml,
   }), 'expanded.zip', { maxExpandedBytes: 10 }), 'expanded-too-large')
+})
+
+test('rejects a directory entry with non-zero payload instead of bypassing expanded-byte accounting', async () => {
+  await rejectsWithCode(readConfigurationArchive(archive({
+    'payload/': 'x'.repeat(64),
+    'Configuration.xml': configurationXml,
+  }), 'directory-payload.zip', {
+    maxExpandedBytes: Buffer.byteLength(configurationXml) + 1,
+  }), 'invalid-archive')
 })
 
 test('rejects the input buffer over the injected compressed archive limit', async () => {

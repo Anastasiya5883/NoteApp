@@ -74,7 +74,7 @@ function candidateRoot(path: string): string | null {
   return null
 }
 
-function isRetainedMetadataPath(path: string): boolean {
+function isPotentialMetadataPath(path: string): boolean {
   const segments = path.split('/')
   const relative = segments.length > 1 && segments[1] === 'Configuration.xml'
     ? segments.slice(1)
@@ -85,6 +85,14 @@ function isRetainedMetadataPath(path: string): boolean {
   return relative.length === 2
     && metadataFolders.has(relative[0])
     && relative[1].toLowerCase().endsWith('.xml')
+}
+
+function isAcceptedMetadataPath(path: string): boolean {
+  const segments = path.split('/')
+  if (segments.length === 1) return segments[0] === 'Configuration.xml'
+  return segments.length === 2
+    && metadataFolders.has(segments[0])
+    && segments[1].toLowerCase().endsWith('.xml')
 }
 
 function readZipFile(
@@ -145,6 +153,10 @@ function readZipFile(
         if (root !== null) roots.add(root)
 
         if (path.endsWith('/')) {
+          if (entry.compressedSize !== 0 || entry.uncompressedSize !== 0) {
+            fail(new ConfigurationImportError('invalid-archive', `Directory entry contains data: ${path}`))
+            return
+          }
           zipFile?.readEntry()
           return
         }
@@ -161,7 +173,7 @@ function readZipFile(
             return
           }
           const chunks: Buffer[] = []
-          const retain = isRetainedMetadataPath(path)
+          const retain = isPotentialMetadataPath(path)
           stream.on('error', fail)
           stream.on('data', (chunk: Buffer) => {
             if (settled) return
@@ -195,7 +207,9 @@ function readZipFile(
         const root = roots.values().next().value as string
         const files = new Map<string, Buffer>()
         for (const [path, contents] of retained) {
-          if (path.startsWith(root)) files.set(path.slice(root.length), contents)
+          if (!path.startsWith(root)) continue
+          const relativePath = path.slice(root.length)
+          if (isAcceptedMetadataPath(relativePath)) files.set(relativePath, contents)
         }
         settled = true
         zipFile?.close()
