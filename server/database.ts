@@ -45,6 +45,19 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS file_history_user_created_idx
     ON file_history(user_id, created_at DESC);
+
+  CREATE TABLE IF NOT EXISTS configuration_catalogs (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    source_file_name TEXT NOT NULL,
+    configuration_name TEXT NOT NULL,
+    configuration_synonym TEXT,
+    configuration_version TEXT,
+    catalog_json TEXT NOT NULL,
+    object_count INTEGER NOT NULL,
+    attribute_count INTEGER NOT NULL,
+    table_part_count INTEGER NOT NULL,
+    uploaded_at INTEGER NOT NULL
+  );
 `)
 
 export interface UserRecord {
@@ -192,4 +205,106 @@ export function findHistoryEntry(userId: number, id: number): HistoryDetailRecor
 export function deleteHistoryEntry(userId: number, id: number): boolean {
   const result = db.prepare('DELETE FROM file_history WHERE id = ? AND user_id = ?').run(id, userId)
   return result.changes > 0
+}
+
+export interface ConfigurationCatalogRecord {
+  user_id: number
+  source_file_name: string
+  configuration_name: string
+  configuration_synonym: string | null
+  configuration_version: string | null
+  catalog_json: string
+  object_count: number
+  attribute_count: number
+  table_part_count: number
+  uploaded_at: number
+}
+
+export interface ConfigurationCatalogCounts {
+  objects: number
+  attributes: number
+  tableParts: number
+}
+
+interface ConfigurationCatalogMetadata {
+  configurationName: string
+  configurationSynonym: string | null
+  configurationVersion: string | null
+}
+
+function readConfigurationCatalogMetadata(catalogJson: string): ConfigurationCatalogMetadata {
+  const parsed: unknown = JSON.parse(catalogJson)
+  if (!parsed || typeof parsed !== 'object') {
+    throw new TypeError('Catalog JSON must contain configuration metadata')
+  }
+
+  const metadata = parsed as Partial<ConfigurationCatalogMetadata>
+  if (typeof metadata.configurationName !== 'string' || !metadata.configurationName) {
+    throw new TypeError('Catalog JSON must include a configuration name')
+  }
+
+  return {
+    configurationName: metadata.configurationName,
+    configurationSynonym: typeof metadata.configurationSynonym === 'string'
+      ? metadata.configurationSynonym
+      : null,
+    configurationVersion: typeof metadata.configurationVersion === 'string'
+      ? metadata.configurationVersion
+      : null,
+  }
+}
+
+export function findConfigurationCatalog(userId: number): ConfigurationCatalogRecord | undefined {
+  const record = db.prepare(`
+    SELECT user_id, source_file_name, configuration_name, configuration_synonym,
+      configuration_version, catalog_json, object_count, attribute_count, table_part_count, uploaded_at
+    FROM configuration_catalogs
+    WHERE user_id = ?
+  `).get(userId) as ConfigurationCatalogRecord | undefined
+  return record ? { ...record } : undefined
+}
+
+export function replaceConfigurationCatalog(
+  userId: number,
+  sourceFileName: string,
+  catalogJson: string,
+  counts: ConfigurationCatalogCounts,
+  uploadedAt: number,
+): ConfigurationCatalogRecord {
+  const metadata = readConfigurationCatalogMetadata(catalogJson)
+  db.prepare(`
+    INSERT INTO configuration_catalogs (
+      user_id, source_file_name, configuration_name, configuration_synonym, configuration_version,
+      catalog_json, object_count, attribute_count, table_part_count, uploaded_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(user_id) DO UPDATE SET
+      source_file_name = excluded.source_file_name,
+      configuration_name = excluded.configuration_name,
+      configuration_synonym = excluded.configuration_synonym,
+      configuration_version = excluded.configuration_version,
+      catalog_json = excluded.catalog_json,
+      object_count = excluded.object_count,
+      attribute_count = excluded.attribute_count,
+      table_part_count = excluded.table_part_count,
+      uploaded_at = excluded.uploaded_at
+  `).run(
+    userId,
+    sourceFileName,
+    metadata.configurationName,
+    metadata.configurationSynonym,
+    metadata.configurationVersion,
+    catalogJson,
+    counts.objects,
+    counts.attributes,
+    counts.tableParts,
+    uploadedAt,
+  )
+
+  const record = findConfigurationCatalog(userId)
+  if (!record) throw new Error('Unable to store configuration catalog')
+  return record
+}
+
+export function deleteConfigurationCatalog(userId: number): boolean {
+  return db.prepare('DELETE FROM configuration_catalogs WHERE user_id = ?').run(userId).changes > 0
 }
