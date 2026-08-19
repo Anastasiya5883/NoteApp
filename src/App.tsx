@@ -6,7 +6,7 @@ import ResultsStep from './components/ResultsStep'
 import LoginPage from './components/LoginPage'
 import ProfilePage from './components/ProfilePage'
 import { useAuth } from './context/AuthContext'
-import { analyzeText, type AnalysisResult } from './lib/analyzer'
+import { analyzeText, type AnalysisMode, type AnalysisResult } from './lib/analyzer'
 import { saveHistoryEntry, type HistoryDetail } from './lib/history'
 
 type Step = 'input' | 'analyzing' | 'results'
@@ -19,6 +19,7 @@ export default function App() {
   const [text, setText] = useState('')
   const [fileName, setFileName] = useState<string | null>(null)
   const [result, setResult] = useState<AnalysisResult | null>(null)
+  const [mode, setMode] = useState<AnalysisMode>('attributes')
   const [saveError, setSaveError] = useState<string | null>(null)
 
   const handleAnalyze = useCallback(() => {
@@ -28,7 +29,7 @@ export default function App() {
     setSaveError(null)
     setStep('analyzing')
     setTimeout(() => {
-      const res = analyzeText(sourceText)
+      const res = analyzeText(sourceText, mode)
       setResult(res)
       setStep('results')
       if (sourceFileName) {
@@ -38,7 +39,7 @@ export default function App() {
         })
       }
     }, 2600)
-  }, [fileName, text])
+  }, [fileName, mode, text])
 
   const handleReset = useCallback(() => {
     setView('assistant')
@@ -47,6 +48,7 @@ export default function App() {
     setFileName(null)
     setResult(null)
     setSaveError(null)
+    setMode('attributes')
   }, [])
 
   const handleFileLoaded = useCallback((name: string, content: string) => {
@@ -65,6 +67,7 @@ export default function App() {
     setText(entry.sourceText)
     setFileName(null)
     setResult(entry.result)
+    setMode(entry.result.mode)
     setSaveError(null)
     setStep('results')
     setView('assistant')
@@ -108,10 +111,12 @@ export default function App() {
             onFileLoaded={handleFileLoaded}
             onUseSample={handleUseSample}
             onAnalyze={handleAnalyze}
+            mode={mode}
+            onModeChange={setMode}
           />
         )}
 
-        {view === 'assistant' && step === 'analyzing' && <AnalyzingStep />}
+        {view === 'assistant' && step === 'analyzing' && <AnalyzingStep mode={mode} />}
 
         {view === 'assistant' && step === 'results' && result && (
           <ResultsStep result={result} onReset={handleReset} saveError={saveError} />

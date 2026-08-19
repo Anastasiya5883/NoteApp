@@ -2,6 +2,10 @@
 // Ищет объекты конфигурации, реквизиты, разделы и пробелы в требованиях.
 // В финальной версии заменяется вызовом AI-модели с доступом к структуре конфигурации.
 
+import { detectContradictions, type Contradiction } from './contradictionDetector'
+
+export type AnalysisMode = 'attributes' | 'contradictions'
+
 export type EntityType =
   | 'Документ'
   | 'Справочник'
@@ -49,12 +53,14 @@ export interface Recommendation {
 }
 
 export interface AnalysisResult {
+  mode: AnalysisMode
   words: number
   entities: FoundEntity[]
   attributes: FoundAttribute[]
   sections: FoundSection[]
   gaps: Gap[]
   recommendations: Recommendation[]
+  contradictions: Contradiction[]
 }
 
 // ---------- Словари ----------
@@ -511,7 +517,7 @@ function buildRecommendations(ctx: CheckContext, gaps: Gap[]): Recommendation[] 
 
 // ---------- Точка входа ----------
 
-export function analyzeText(text: string): AnalysisResult {
+export function analyzeText(text: string, mode: AnalysisMode = 'attributes'): AnalysisResult {
   const normalized = text.trim()
   const words = normalized.split(/\s+/).filter(Boolean).length
   const lower = normalized.toLowerCase()
@@ -546,5 +552,7 @@ export function analyzeText(text: string): AnalysisResult {
 
   const recommendations = buildRecommendations(ctx, gaps)
 
-  return { words, entities, attributes, sections, gaps, recommendations }
+  const contradictions = mode === 'contradictions' ? detectContradictions(normalized) : []
+
+  return { mode, words, entities, attributes, sections, gaps, recommendations, contradictions }
 }

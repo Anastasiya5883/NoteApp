@@ -114,6 +114,7 @@ export interface HistorySummaryRecord {
   section_count: number
   gap_count: number
   created_at: number
+  analysis_json: string
 }
 
 export interface HistoryDetailRecord extends HistorySummaryRecord {
@@ -171,7 +172,7 @@ export function createHistoryEntry(
 
 export function listHistoryEntries(userId: number): HistorySummaryRecord[] {
   return db.prepare(`
-    SELECT id, file_name, word_count, entity_count, attribute_count,
+    SELECT id, file_name, analysis_json, word_count, entity_count, attribute_count,
       section_count, gap_count, created_at
     FROM file_history
     WHERE user_id = ?

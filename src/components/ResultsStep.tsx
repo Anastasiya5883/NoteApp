@@ -176,6 +176,39 @@ function RecommendationList({ recommendations }: { recommendations: AnalysisResu
   )
 }
 
+function ContradictionCards({ contradictions }: { contradictions: AnalysisResult['contradictions'] }) {
+  if (contradictions.length === 0) {
+    return (
+      <p className="rounded-xl border border-green-200 bg-green-50 px-4 py-5 text-sm font-medium text-green-700">
+        Явных противоречий не выявлено.
+      </p>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {contradictions.map((item) => (
+        <article key={item.id} className="rounded-xl border border-amber-200 bg-amber-50 p-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-amber-200 px-2.5 py-1 text-xs font-semibold text-amber-900">
+              {item.category === 'logical' ? 'Логическое' : 'Числовое'}
+            </span>
+            <h4 className="font-semibold text-slate-900">{item.title}</h4>
+          </div>
+          <p className="mt-2 text-sm text-slate-700">{item.description}</p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {item.quotes.map((quote, index) => (
+              <blockquote key={index} className="rounded-lg border border-amber-200 bg-white/70 px-3 py-3 text-sm text-slate-700">
+                «{quote}»
+              </blockquote>
+            ))}
+          </div>
+        </article>
+      ))}
+    </div>
+  )
+}
+
 function ExportPanel({ result }: { result: AnalysisResult }) {
   const [copied, setCopied] = useState(false)
   const [showMd, setShowMd] = useState(false)
@@ -190,7 +223,7 @@ function ExportPanel({ result }: { result: AnalysisResult }) {
   }
 
   const handleDownload = () => {
-    downloadText(markdown, 'анализ-тз.md')
+    downloadText(markdown, result.mode === 'contradictions' ? 'противоречия-тз.md' : 'реквизиты-1с.md')
   }
 
   return (
@@ -252,7 +285,9 @@ export default function ResultsStep({ result, onReset, saveError }: ResultsStepP
     <div className="mx-auto w-full max-w-4xl px-4 pb-12 pt-6">
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Результаты анализа</h2>
+          <h2 className="text-2xl font-bold text-slate-900">
+            {result.mode === 'contradictions' ? 'Противоречия в ТЗ' : 'Объекты и реквизиты 1С'}
+          </h2>
           <p className="mt-1 text-sm text-slate-500">
             Результаты носят рекомендательный характер и требуют проверки человеком.
           </p>
@@ -275,40 +310,48 @@ export default function ResultsStep({ result, onReset, saveError }: ResultsStepP
         </p>
       )}
 
-      {/* Статистика */}
-      <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <StatCard label="Слов в ТЗ" value={result.words} color="border-slate-200 bg-white" />
-        <StatCard label="Объектов" value={result.entities.length} color="border-blue-200 bg-blue-50" />
-        <StatCard label="Реквизитов" value={result.attributes.length} color="border-violet-200 bg-violet-50" />
-        <StatCard label="Разделов" value={result.sections.length} color="border-amber-200 bg-amber-50" />
-        <StatCard label="Пробелов" value={result.gaps.length} color="border-rose-200 bg-rose-50" />
-      </div>
-
-      {/* Секции */}
-      <section className="mb-8">
-        <h3 className="mb-3 text-lg font-semibold text-slate-800">Найденные объекты конфигурации</h3>
-        <EntityTable entities={result.entities} />
-      </section>
-
-      <section className="mb-8">
-        <h3 className="mb-3 text-lg font-semibold text-slate-800">Предполагаемые реквизиты</h3>
-        <AttributeTags attributes={result.attributes} />
-      </section>
-
-      <section className="mb-8">
-        <h3 className="mb-3 text-lg font-semibold text-slate-800">Затронутые разделы конфигурации</h3>
-        <SectionTags sections={result.sections} />
-      </section>
-
-      <section className="mb-8">
-        <h3 className="mb-3 text-lg font-semibold text-slate-800">Пробелы и вопросы для уточнения</h3>
-        <GapCards gaps={result.gaps} />
-      </section>
-
-      <section className="mb-8">
-        <h3 className="mb-3 text-lg font-semibold text-slate-800">Рекомендации</h3>
-        <RecommendationList recommendations={result.recommendations} />
-      </section>
+      {result.mode === 'contradictions' ? (
+        <>
+          <div className="mb-8 grid grid-cols-2 gap-3">
+            <StatCard label="Слов в ТЗ" value={result.words} color="border-slate-200 bg-white" />
+            <StatCard label="Противоречий" value={result.contradictions.length} color="border-amber-200 bg-amber-50" />
+          </div>
+          <section className="mb-8">
+            <h3 className="mb-3 text-lg font-semibold text-slate-800">Противоречия в требованиях</h3>
+            <ContradictionCards contradictions={result.contradictions} />
+          </section>
+        </>
+      ) : (
+        <>
+          <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
+            <StatCard label="Слов в ТЗ" value={result.words} color="border-slate-200 bg-white" />
+            <StatCard label="Объектов" value={result.entities.length} color="border-blue-200 bg-blue-50" />
+            <StatCard label="Реквизитов" value={result.attributes.length} color="border-violet-200 bg-violet-50" />
+            <StatCard label="Разделов" value={result.sections.length} color="border-amber-200 bg-amber-50" />
+            <StatCard label="Пробелов" value={result.gaps.length} color="border-rose-200 bg-rose-50" />
+          </div>
+          <section className="mb-8">
+            <h3 className="mb-3 text-lg font-semibold text-slate-800">Найденные объекты конфигурации</h3>
+            <EntityTable entities={result.entities} />
+          </section>
+          <section className="mb-8">
+            <h3 className="mb-3 text-lg font-semibold text-slate-800">Предполагаемые реквизиты</h3>
+            <AttributeTags attributes={result.attributes} />
+          </section>
+          <section className="mb-8">
+            <h3 className="mb-3 text-lg font-semibold text-slate-800">Затронутые разделы конфигурации</h3>
+            <SectionTags sections={result.sections} />
+          </section>
+          <section className="mb-8">
+            <h3 className="mb-3 text-lg font-semibold text-slate-800">Пробелы и вопросы для уточнения</h3>
+            <GapCards gaps={result.gaps} />
+          </section>
+          <section className="mb-8">
+            <h3 className="mb-3 text-lg font-semibold text-slate-800">Рекомендации</h3>
+            <RecommendationList recommendations={result.recommendations} />
+          </section>
+        </>
+      )}
 
       <section className="mb-8">
         <h3 className="mb-3 text-lg font-semibold text-slate-800">Экспорт результата</h3>

@@ -115,6 +115,9 @@ export default function ProfilePage({ username, onOpenEntry, onNewAnalysis }: Pr
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0">
                     <h2 className="truncate font-semibold text-slate-900">{entry.fileName}</h2>
+                    <span className="mt-2 inline-block rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">
+                      {entry.mode === 'contradictions' ? 'Проверка противоречий' : 'Подбор реквизитов 1С'}
+                    </span>
                     <p className="mt-1 text-xs text-slate-500">{formatDate(entry.createdAt)}</p>
                   </div>
                   <div className="flex gap-2">
@@ -134,12 +137,18 @@ export default function ProfilePage({ username, onOpenEntry, onNewAnalysis }: Pr
                     </button>
                   </div>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-5">
+                <div className={`mt-4 grid grid-cols-2 gap-2 text-xs ${entry.mode === 'attributes' ? 'sm:grid-cols-5' : ''}`}>
                   <Stat label="Слов" value={entry.stats.words} />
-                  <Stat label="Объектов" value={entry.stats.entities} />
-                  <Stat label="Реквизитов" value={entry.stats.attributes} />
-                  <Stat label="Разделов" value={entry.stats.sections} />
-                  <Stat label="Пробелов" value={entry.stats.gaps} />
+                  {entry.mode === 'contradictions' ? (
+                    <Stat label="Противоречий" value={entry.stats.contradictions} />
+                  ) : (
+                    <>
+                      <Stat label="Объектов" value={entry.stats.entities} />
+                      <Stat label="Реквизитов" value={entry.stats.attributes} />
+                      <Stat label="Разделов" value={entry.stats.sections} />
+                      <Stat label="Пробелов" value={entry.stats.gaps} />
+                    </>
+                  )}
                 </div>
               </article>
             )

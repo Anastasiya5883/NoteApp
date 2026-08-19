@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { extractTextFromFile, FileReadError } from '../lib/fileReader'
 import { SAMPLES } from '../lib/samples'
+import type { AnalysisMode } from '../lib/analyzer'
 
 interface InputStepProps {
   text: string
@@ -9,9 +10,11 @@ interface InputStepProps {
   onFileLoaded: (fileName: string, content: string) => void
   onUseSample: (text: string) => void
   onAnalyze: () => void
+  mode: AnalysisMode
+  onModeChange: (mode: AnalysisMode) => void
 }
 
-export default function InputStep({ text, setText, fileName, onFileLoaded, onUseSample, onAnalyze }: InputStepProps) {
+export default function InputStep({ text, setText, fileName, onFileLoaded, onUseSample, onAnalyze, mode, onModeChange }: InputStepProps) {
   const fileRef = useRef<HTMLInputElement>(null)
   const readGenerationRef = useRef(0)
   const [error, setError] = useState<string | null>(null)
@@ -61,13 +64,27 @@ export default function InputStep({ text, setText, fileName, onFileLoaded, onUse
           </span>
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-slate-600">
-          Загрузите ТЗ бизнес-аналитика и получите список найденных объектов, реквизитов, разделов
-          конфигурации и вопросов, которые нужно уточнить для передачи задачи разработчику.
+          Выберите задачу, загрузите ТЗ или вставьте его текст.
         </p>
       </div>
 
+      <div className="mt-8 grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Тип анализа">
+        <ModeCard
+          checked={mode === 'contradictions'}
+          title="Проверить ТЗ на противоречия"
+          description="Найти несовместимые логические и числовые требования."
+          onClick={() => onModeChange('contradictions')}
+        />
+        <ModeCard
+          checked={mode === 'attributes'}
+          title="Подобрать реквизиты 1С"
+          description="Определить по контексту объекты, реквизиты и разделы конфигурации."
+          onClick={() => onModeChange('attributes')}
+        />
+      </div>
+
       <div
-        className={`mt-8 rounded-2xl border p-4 shadow-sm transition-colors ${
+        className={`mt-5 rounded-2xl border p-4 shadow-sm transition-colors ${
           dragging ? 'border-indigo-400 bg-indigo-50/60' : 'border-slate-200 bg-white'
         }`}
         onDragOver={(e) => {
@@ -164,9 +181,35 @@ export default function InputStep({ text, setText, fileName, onFileLoaded, onUse
             <path d="M12 9v4" />
             <path d="M12 17h.01" />
           </svg>
-          Проанализировать ТЗ
+          {mode === 'contradictions' ? 'Проверить на противоречия' : 'Подобрать реквизиты 1С'}
         </button>
       </div>
     </div>
+  )
+}
+
+function ModeCard({ checked, title, description, onClick }: { checked: boolean; title: string; description: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={checked}
+      onClick={onClick}
+      className={`rounded-2xl border p-5 text-left transition ${
+        checked
+          ? 'border-indigo-500 bg-indigo-50 shadow-sm ring-2 ring-indigo-100'
+          : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50'
+      }`}
+    >
+      <span className="flex items-start gap-3">
+        <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${checked ? 'border-indigo-600' : 'border-slate-300'}`}>
+          {checked && <span className="h-2.5 w-2.5 rounded-full bg-indigo-600" />}
+        </span>
+        <span>
+          <span className="block text-sm font-semibold text-slate-900">{title}</span>
+          <span className="mt-1 block text-xs leading-5 text-slate-500">{description}</span>
+        </span>
+      </span>
+    </button>
   )
 }

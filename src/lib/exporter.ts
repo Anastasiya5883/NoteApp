@@ -1,8 +1,10 @@
 import type { AnalysisResult } from './analyzer'
 
 export function buildMarkdown(result: AnalysisResult): string {
+  if (result.mode === 'contradictions') return buildContradictionMarkdown(result)
+
   const lines: string[] = []
-  lines.push('# Анализ технического задания')
+  lines.push('# Подбор объектов и реквизитов 1С')
   lines.push('', `_Сформировано автоматически. Количество слов в ТЗ: **${result.words}**._`)
   lines.push('', '> Результаты носят рекомендательный характер и требуют проверки аналитиком и разработчиком.')
 
@@ -65,6 +67,31 @@ export function buildMarkdown(result: AnalysisResult): string {
     lines.push('- _не определены_')
   } else {
     for (const s of result.sections) lines.push(`- ${s.name}`)
+  }
+
+  return lines.join('\n')
+}
+
+function buildContradictionMarkdown(result: AnalysisResult): string {
+  const lines: string[] = [
+    '# Проверка ТЗ на противоречия',
+    '',
+    `_Сформировано автоматически. Количество слов в ТЗ: **${result.words}**._`,
+    '',
+    '> Результаты носят рекомендательный характер и требуют проверки человеком.',
+    '',
+    '## Противоречия в требованиях',
+  ]
+
+  if (result.contradictions.length === 0) {
+    lines.push('', 'Явных противоречий не выявлено.')
+  } else {
+    for (const contradiction of result.contradictions) {
+      lines.push('', `### ${contradiction.title} (${contradiction.category === 'logical' ? 'логическое' : 'числовое'})`)
+      lines.push('', contradiction.description)
+      lines.push('', `> ${contradiction.quotes[0]}`)
+      lines.push('', `> ${contradiction.quotes[1]}`)
+    }
   }
 
   return lines.join('\n')

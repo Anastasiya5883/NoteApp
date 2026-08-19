@@ -150,12 +150,14 @@ function parseHistoryId(value: unknown): number | null {
 }
 
 function isAnalysisResult(value: unknown): value is {
+  mode?: 'attributes' | 'contradictions'
   words: number
   entities: unknown[]
   attributes: unknown[]
   sections: unknown[]
   gaps: unknown[]
   recommendations: unknown[]
+  contradictions?: unknown[]
 } {
   if (!value || typeof value !== 'object') return false
   const result = value as Record<string, unknown>
@@ -165,20 +167,32 @@ function isAnalysisResult(value: unknown): value is {
     && Array.isArray(result.sections)
     && Array.isArray(result.gaps)
     && Array.isArray(result.recommendations)
+    && (result.mode === undefined || result.mode === 'attributes' || result.mode === 'contradictions')
+    && (result.contradictions === undefined || Array.isArray(result.contradictions))
 }
 
-const toHistorySummary = (entry: ReturnType<typeof listHistoryEntries>[number]) => ({
-  id: entry.id,
-  fileName: entry.file_name,
-  createdAt: entry.created_at,
-  stats: {
-    words: entry.word_count,
-    entities: entry.entity_count,
-    attributes: entry.attribute_count,
-    sections: entry.section_count,
-    gaps: entry.gap_count,
-  },
-})
+const toHistorySummary = (entry: ReturnType<typeof listHistoryEntries>[number]) => {
+  let metadata: { mode?: unknown; contradictions?: unknown } = {}
+  try {
+    metadata = JSON.parse(entry.analysis_json) as typeof metadata
+  } catch {
+    // Existing counters remain usable even if a legacy detail is malformed.
+  }
+  return {
+    id: entry.id,
+    fileName: entry.file_name,
+    createdAt: entry.created_at,
+    mode: metadata.mode === 'contradictions' ? 'contradictions' : 'attributes',
+    stats: {
+      words: entry.word_count,
+      entities: entry.entity_count,
+      attributes: entry.attribute_count,
+      sections: entry.section_count,
+      gaps: entry.gap_count,
+      contradictions: Array.isArray(metadata.contradictions) ? metadata.contradictions.length : 0,
+    },
+  }
+}
 
 app.post('/api/history', requireAuth, (req, res) => {
   const fileName = typeof req.body?.fileName === 'string' ? req.body.fileName.trim() : ''

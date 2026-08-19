@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import type { AnalysisMode } from '../lib/analyzer'
 
-const STEPS = [
+const ATTRIBUTE_STEPS = [
   'Разбор текста ТЗ',
   'Поиск объектов конфигурации',
   'Выделение реквизитов',
@@ -8,7 +9,16 @@ const STEPS = [
   'Формирование отчёта',
 ]
 
-export default function AnalyzingStep() {
+const CONTRADICTION_STEPS = [
+  'Разбор текста ТЗ',
+  'Сопоставление требований',
+  'Поиск логических противоречий',
+  'Проверка числовых значений',
+  'Формирование отчёта',
+]
+
+export default function AnalyzingStep({ mode }: { mode: AnalysisMode }) {
+  const steps = mode === 'contradictions' ? CONTRADICTION_STEPS : ATTRIBUTE_STEPS
   const [index, setIndex] = useState(0)
   const [done, setDone] = useState(false)
 
@@ -16,7 +26,7 @@ export default function AnalyzingStep() {
     if (done) return
     const t = setInterval(() => {
       setIndex((i) => {
-        if (i >= STEPS.length - 1) {
+        if (i >= steps.length - 1) {
           clearInterval(t)
           setDone(true)
           return i
@@ -25,7 +35,7 @@ export default function AnalyzingStep() {
       })
     }, 500)
     return () => clearInterval(t)
-  }, [done])
+  }, [done, steps.length])
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4">
@@ -51,12 +61,12 @@ export default function AnalyzingStep() {
         <div className="mb-8 h-2 w-full overflow-hidden rounded-full bg-slate-200">
           <div
             className="h-full rounded-full bg-indigo-600 transition-all duration-300 ease-out"
-            style={{ width: `${((index + 1) / STEPS.length) * 100}%` }}
+            style={{ width: `${((index + 1) / steps.length) * 100}%` }}
           />
         </div>
 
         <ul className="space-y-3">
-          {STEPS.map((step, i) => (
+          {steps.map((step, i) => (
             <li
               key={step}
               className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-all ${
