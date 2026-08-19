@@ -3,6 +3,8 @@
 // В финальной версии заменяется вызовом AI-модели с доступом к структуре конфигурации.
 
 import { detectContradictions, type Contradiction } from './contradictionDetector'
+import type { ConfigurationCatalog, MetadataCheck } from './configurationCatalogTypes'
+import { matchAnalysisMetadata } from './metadataMatcher'
 
 export type AnalysisMode = 'attributes' | 'contradictions'
 
@@ -61,6 +63,11 @@ export interface AnalysisResult {
   gaps: Gap[]
   recommendations: Recommendation[]
   contradictions: Contradiction[]
+  metadataChecks: MetadataCheck[]
+  catalogContext: {
+    localUploadedAt: number | null
+    erpReferenceVersion: '2.6.1.16'
+  }
 }
 
 // ---------- Словари ----------
@@ -517,7 +524,11 @@ function buildRecommendations(ctx: CheckContext, gaps: Gap[]): Recommendation[] 
 
 // ---------- Точка входа ----------
 
-export function analyzeText(text: string, mode: AnalysisMode = 'attributes'): AnalysisResult {
+export function analyzeText(
+  text: string,
+  mode: AnalysisMode = 'attributes',
+  localCatalog: ConfigurationCatalog | null = null,
+): AnalysisResult {
   const normalized = text.trim()
   const words = normalized.split(/\s+/).filter(Boolean).length
   const lower = normalized.toLowerCase()
@@ -553,6 +564,24 @@ export function analyzeText(text: string, mode: AnalysisMode = 'attributes'): An
   const recommendations = buildRecommendations(ctx, gaps)
 
   const contradictions = mode === 'contradictions' ? detectContradictions(normalized) : []
+  const metadataChecks = mode === 'attributes'
+    ? matchAnalysisMetadata(entities, attributes, localCatalog)
+    : []
+  const catalogContext = {
+    localUploadedAt: localCatalog?.uploadedAt ?? null,
+    erpReferenceVersion: '2.6.1.16' as const,
+  }
 
-  return { mode, words, entities, attributes, sections, gaps, recommendations, contradictions }
+  return {
+    mode,
+    words,
+    entities,
+    attributes,
+    sections,
+    gaps,
+    recommendations,
+    contradictions,
+    metadataChecks,
+    catalogContext,
+  }
 }
