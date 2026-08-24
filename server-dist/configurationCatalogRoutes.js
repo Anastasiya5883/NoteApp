@@ -4,13 +4,13 @@ import { ConfigurationImportError } from './configurationCatalogTypes.js';
 import { deleteConfigurationCatalog, findConfigurationCatalog, replaceConfigurationCatalog, } from './database.js';
 const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 50 * 1024 * 1024 },
+    limits: { fileSize: 10 * 1024 * 1024 * 1024 },
 }).single('file');
 function acceptCatalogUpload(req, res, next) {
     upload(req, res, (error) => {
         if (error instanceof multer.MulterError) {
             if (error.code === 'LIMIT_FILE_SIZE') {
-                res.status(413).json({ error: 'Размер ZIP-архива не должен превышать 50 МБ' });
+                res.status(413).json({ error: 'Размер ZIP-архива не должен превышать 10 ГБ' });
                 return;
             }
             res.status(400).json({ error: 'Некорректный файл ZIP-архива конфигурации' });

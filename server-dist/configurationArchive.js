@@ -2,8 +2,9 @@ import { fromBuffer, getFileNameLowLevel, } from 'yauzl';
 import { ConfigurationImportError, } from './configurationCatalogTypes.js';
 import { parseConfigurationXml } from './configurationXml.js';
 const MIB = 1024 * 1024;
+const GIB = 1024 * MIB;
 export const DEFAULT_CONFIGURATION_ARCHIVE_LIMITS = {
-    maxArchiveBytes: 50 * MIB,
+    maxArchiveBytes: 10 * GIB,
     maxExpandedBytes: 250 * MIB,
     maxEntries: 50_000,
 };

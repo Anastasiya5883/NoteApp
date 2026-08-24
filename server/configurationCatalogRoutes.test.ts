@@ -70,10 +70,12 @@ test('rejects missing, non-ZIP, and overlong upload filenames', async () => {
     .expect(400)
 })
 
-test('rejects an upload larger than 50 MiB', async () => {
-  await userA.put('/api/configuration-catalog')
+test('passes an upload larger than 50 MiB to archive validation', async () => {
+  const response = await userA.put('/api/configuration-catalog')
     .attach('file', Buffer.alloc(50 * 1024 * 1024 + 1), { filename: 'oversize.zip' })
-    .expect(413)
+    .expect(400)
+
+  assert.match(response.body.error, /архив|zip|конфигурац/i)
 })
 
 test('stores a parsed catalog and returns complete details and counts', async () => {

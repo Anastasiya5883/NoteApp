@@ -11,6 +11,7 @@ import {
 import { parseConfigurationXml } from './configurationXml.js'
 
 const MIB = 1024 * 1024
+const GIB = 1024 * MIB
 
 export interface ConfigurationArchiveLimits {
   maxArchiveBytes: number
@@ -19,7 +20,7 @@ export interface ConfigurationArchiveLimits {
 }
 
 export const DEFAULT_CONFIGURATION_ARCHIVE_LIMITS: Readonly<ConfigurationArchiveLimits> = {
-  maxArchiveBytes: 50 * MIB,
+  maxArchiveBytes: 10 * GIB,
   maxExpandedBytes: 250 * MIB,
   maxEntries: 50_000,
 }

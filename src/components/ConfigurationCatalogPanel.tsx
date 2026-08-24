@@ -106,7 +106,7 @@ export default function ConfigurationCatalogPanel() {
         >
           {state.summary ? 'Заменить данные' : 'Загрузить ZIP'}
         </button>
-        <p className="mt-2 text-xs text-slate-500">ZIP до 50 МБ — можно выбрать или перетащить сюда</p>
+        <p className="mt-2 text-xs text-slate-500">ZIP до 10 ГБ — можно выбрать или перетащить сюда</p>
       </div>
     </section>
   )
