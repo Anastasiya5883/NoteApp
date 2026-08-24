@@ -9,6 +9,7 @@ import { useAuth } from './context/AuthContext'
 import { analyzeText, type AnalysisMode, type AnalysisResult } from './lib/analyzer'
 import { saveHistoryEntry, type HistoryDetail } from './lib/history'
 import { getConfigurationCatalog } from './lib/configurationCatalogApi'
+import { composeAnalysisSource } from './lib/analysisSource'
 
 type Step = 'input' | 'analyzing' | 'results'
 type View = 'assistant' | 'profile'
@@ -18,6 +19,7 @@ export default function App() {
   const [view, setView] = useState<View>('assistant')
   const [step, setStep] = useState<Step>('input')
   const [text, setText] = useState('')
+  const [fileContent, setFileContent] = useState('')
   const [fileName, setFileName] = useState<string | null>(null)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [mode, setMode] = useState<AnalysisMode>('attributes')
@@ -25,8 +27,8 @@ export default function App() {
   const [analysisWarning, setAnalysisWarning] = useState<string | null>(null)
 
   const handleAnalyze = useCallback(() => {
-    if (!text.trim()) return
-    const sourceText = text
+    const sourceText = composeAnalysisSource(fileContent, text)
+    if (!sourceText.trim()) return
     const sourceFileName = fileName
     setSaveError(null)
     setAnalysisWarning(null)
@@ -50,12 +52,13 @@ export default function App() {
         })
       }
     }, 2600)
-  }, [fileName, mode, text])
+  }, [fileContent, fileName, mode, text])
 
   const handleReset = useCallback(() => {
     setView('assistant')
     setStep('input')
     setText('')
+    setFileContent('')
     setFileName(null)
     setResult(null)
     setSaveError(null)
@@ -65,13 +68,14 @@ export default function App() {
 
   const handleFileLoaded = useCallback((name: string, content: string) => {
     setFileName(name)
-    setText(content)
+    setFileContent(content)
     setSaveError(null)
     setAnalysisWarning(null)
   }, [])
 
   const handleUseSample = useCallback((sampleText: string) => {
     setFileName(null)
+    setFileContent('')
     setText(sampleText)
     setSaveError(null)
     setAnalysisWarning(null)
@@ -79,6 +83,7 @@ export default function App() {
 
   const handleOpenHistory = useCallback((entry: HistoryDetail) => {
     setText(entry.sourceText)
+    setFileContent('')
     setFileName(null)
     setResult(entry.result)
     setMode(entry.result.mode)
