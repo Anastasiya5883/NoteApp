@@ -6,6 +6,7 @@ import {
   type HistoryDetail,
   type HistorySummary,
 } from '../lib/history'
+import ConfigurationCatalogPanel from './ConfigurationCatalogPanel'
 
 interface ProfilePageProps {
   username: string
@@ -19,8 +20,10 @@ const formatDate = (timestamp: number) => new Intl.DateTimeFormat('ru-RU', {
 }).format(new Date(timestamp))
 
 export default function ProfilePage({ username, onOpenEntry, onNewAnalysis }: ProfilePageProps) {
+  const [tab, setTab] = useState<'history' | 'configuration'>('history')
   const [entries, setEntries] = useState<HistorySummary[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
+  const [historyLoaded, setHistoryLoaded] = useState(false)
   const [openingId, setOpeningId] = useState<number | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -34,12 +37,13 @@ export default function ProfilePage({ username, onOpenEntry, onNewAnalysis }: Pr
       setError(loadError instanceof Error ? loadError.message : 'Не удалось загрузить историю')
     } finally {
       setIsLoading(false)
+      setHistoryLoaded(true)
     }
   }, [])
 
   useEffect(() => {
-    void loadEntries()
-  }, [loadEntries])
+    if (tab === 'history' && !historyLoaded) void loadEntries()
+  }, [historyLoaded, loadEntries, tab])
 
   const handleOpen = async (id: number) => {
     setOpeningId(id)
@@ -73,7 +77,9 @@ export default function ProfilePage({ username, onOpenEntry, onNewAnalysis }: Pr
         <div>
           <p className="text-sm font-medium text-indigo-600">Личный кабинет</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">{username}</h1>
-          <p className="mt-2 text-sm text-slate-500">История загруженных и проанализированных файлов</p>
+          <p className="mt-2 text-sm text-slate-500">
+            {tab === 'history' ? 'История загруженных и проанализированных файлов' : 'Загрузка структуры локальной конфигурации 1С'}
+          </p>
         </div>
         <button
           onClick={onNewAnalysis}
@@ -83,6 +89,27 @@ export default function ProfilePage({ username, onOpenEntry, onNewAnalysis }: Pr
         </button>
       </div>
 
+      <div className="mt-7 flex gap-1 rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Разделы личного кабинета">
+        <button
+          role="tab"
+          aria-selected={tab === 'history'}
+          onClick={() => setTab('history')}
+          className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${tab === 'history' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+        >
+          История анализов
+        </button>
+        <button
+          role="tab"
+          aria-selected={tab === 'configuration'}
+          onClick={() => setTab('configuration')}
+          className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${tab === 'configuration' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+        >
+          Информация из локального конфигуратора
+        </button>
+      </div>
+
+      {tab === 'configuration' ? <ConfigurationCatalogPanel /> : (
+        <>
       {error && (
         <div className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
           <span>{error}</span>
@@ -154,6 +181,8 @@ export default function ProfilePage({ username, onOpenEntry, onNewAnalysis }: Pr
             )
           })}
         </div>
+      )}
+        </>
       )}
     </div>
   )
