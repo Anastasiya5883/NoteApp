@@ -5,6 +5,7 @@ import { resolve } from 'node:path'
 import { createSessionToken, hashPassword, hashSessionToken, verifyPassword } from './auth.js'
 import { AuthRateLimiter, parseCredentials } from './authPolicy.js'
 import { isSupportedHistoryFileName } from './fileValidation.js'
+import { resolveServerHost } from './runtimeConfig.js'
 import {
   createSession,
   createUser,
@@ -20,6 +21,7 @@ import {
 
 const app = express()
 const port = Number(process.env.PORT) || 3001
+const host = resolveServerHost(process.env.HOST)
 const sessionCookie = 'tz-assistant-session'
 const sessionLifetimeMs = 7 * 24 * 60 * 60 * 1000
 const authRateLimiter = new AuthRateLimiter()
@@ -274,6 +276,6 @@ app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ error: 'Внутренняя ошибка сервера' })
 })
 
-app.listen(port, '127.0.0.1', () => {
-  console.log(`API доступен на http://127.0.0.1:${port}`)
+app.listen(port, host, () => {
+  console.log(`API доступен на http://${host}:${port}`)
 })
