@@ -1,37 +1,60 @@
-# Dependencies and package-manager caches
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Local web application dependencies and runtime data
 node_modules/
 .pnpm-store/
-
-# Build output
-dist/
-server-dist/
-
-# Environment files
-.env
-.env.*
-!.env.example
-
-# Runtime database files
-server/data/*.db
-server/data/*.db-*
-
-# Tests and logs
-coverage/
-*.log
-npm-debug.log*
-pnpm-debug.log*
-
-# Tool caches and temporary files
-.cache/
-.vite/
-*.tmp
-*.temp
-
-# Editors and operating systems
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
-
-# Active worktrees
 .worktrees/
+server/data/*.db
+server/data/*.db-wal
+server/data/*.db-shm
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
