@@ -1,0 +1,12 @@
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    volumes:
+      - app-data:/app/server/data
+
+volumes:
+  app-data:

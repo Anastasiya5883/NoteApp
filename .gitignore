@@ -36,6 +36,14 @@
 *.x86_64
 *.hex
 
+# Local web application dependencies and runtime data
+node_modules/
+.pnpm-store/
+.worktrees/
+server/data/*.db
+server/data/*.db-wal
+server/data/*.db-shm
+
 # Debug files
 *.dSYM/
 *.su

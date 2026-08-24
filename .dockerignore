@@ -1,0 +1,10 @@
+.git
+.worktrees
+.vs
+.pnpm-store
+node_modules
+NoteApp
+tests
+*.docx
+LICENSE
+README.md

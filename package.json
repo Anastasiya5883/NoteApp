@@ -1,0 +1,17 @@
+{
+  "name": "requirements-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server-dist/index.js",
+    "test": "node --test tests/container-runtime.test.mjs"
+  },
+  "dependencies": {
+    "cookie-parser": "1.4.7",
+    "express": "5.2.1"
+  }
+}
