@@ -8,6 +8,7 @@ import ProfilePage from './components/ProfilePage'
 import { useAuth } from './context/AuthContext'
 import { analyzeText, type AnalysisMode, type AnalysisResult } from './lib/analyzer'
 import { saveHistoryEntry, type HistoryDetail } from './lib/history'
+import { getConfigurationCatalog } from './lib/configurationCatalogApi'
 
 type Step = 'input' | 'analyzing' | 'results'
 type View = 'assistant' | 'profile'
@@ -21,15 +22,25 @@ export default function App() {
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [mode, setMode] = useState<AnalysisMode>('attributes')
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [analysisWarning, setAnalysisWarning] = useState<string | null>(null)
 
   const handleAnalyze = useCallback(() => {
     if (!text.trim()) return
     const sourceText = text
     const sourceFileName = fileName
     setSaveError(null)
+    setAnalysisWarning(null)
     setStep('analyzing')
-    setTimeout(() => {
-      const res = analyzeText(sourceText, mode)
+    setTimeout(async () => {
+      let localCatalog = null
+      if (mode === 'attributes') {
+        try {
+          localCatalog = (await getConfigurationCatalog()).catalog
+        } catch {
+          setAnalysisWarning('Не удалось получить локальную структуру. Проверка выполнена только по неполному справочному каталогу ERP.')
+        }
+      }
+      const res = analyzeText(sourceText, mode, localCatalog)
       setResult(res)
       setStep('results')
       if (sourceFileName) {
@@ -48,6 +59,7 @@ export default function App() {
     setFileName(null)
     setResult(null)
     setSaveError(null)
+    setAnalysisWarning(null)
     setMode('attributes')
   }, [])
 
@@ -55,12 +67,14 @@ export default function App() {
     setFileName(name)
     setText(content)
     setSaveError(null)
+    setAnalysisWarning(null)
   }, [])
 
   const handleUseSample = useCallback((sampleText: string) => {
     setFileName(null)
     setText(sampleText)
     setSaveError(null)
+    setAnalysisWarning(null)
   }, [])
 
   const handleOpenHistory = useCallback((entry: HistoryDetail) => {
@@ -69,6 +83,7 @@ export default function App() {
     setResult(entry.result)
     setMode(entry.result.mode)
     setSaveError(null)
+    setAnalysisWarning(null)
     setStep('results')
     setView('assistant')
   }, [])
@@ -119,7 +134,7 @@ export default function App() {
         {view === 'assistant' && step === 'analyzing' && <AnalyzingStep mode={mode} />}
 
         {view === 'assistant' && step === 'results' && result && (
-          <ResultsStep result={result} onReset={handleReset} saveError={saveError} />
+          <ResultsStep result={result} onReset={handleReset} saveError={saveError} analysisWarning={analysisWarning} />
         )}
       </main>
 

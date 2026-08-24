@@ -22,6 +22,9 @@ test('attribute report keeps the 1C structure and omits contradiction section', 
 
   assert.match(markdown, /# Подбор объектов и реквизитов 1С/)
   assert.match(markdown, /Предполагаемые реквизиты/)
+  assert.match(markdown, /## Проверка по конфигурации/)
+  assert.match(markdown, /Справочный каталог неполный/)
+  assert.match(markdown, /Справочный каталог 1С:ERP/)
   assert.doesNotMatch(markdown, /Противоречия в требованиях/)
 })
 

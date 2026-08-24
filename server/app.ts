@@ -160,6 +160,8 @@ export function createApp(): Express {
     gaps: unknown[]
     recommendations: unknown[]
     contradictions?: unknown[]
+    metadataChecks?: unknown[]
+    catalogContext?: unknown
   } {
     if (!value || typeof value !== 'object') return false
     const result = value as Record<string, unknown>
@@ -171,6 +173,8 @@ export function createApp(): Express {
       && Array.isArray(result.recommendations)
       && (result.mode === undefined || result.mode === 'attributes' || result.mode === 'contradictions')
       && (result.contradictions === undefined || Array.isArray(result.contradictions))
+      && (result.metadataChecks === undefined || Array.isArray(result.metadataChecks))
+      && (result.catalogContext === undefined || (typeof result.catalogContext === 'object' && result.catalogContext !== null))
   }
 
   const toHistorySummary = (entry: ReturnType<typeof listHistoryEntries>[number]) => {

@@ -14,6 +14,11 @@ test('old history results open in attribute mode without contradictions', () => 
 
   assert.equal(result.mode, 'attributes')
   assert.deepEqual(result.contradictions, [])
+  assert.deepEqual(result.metadataChecks, [])
+  assert.deepEqual(result.catalogContext, {
+    localUploadedAt: null,
+    erpReferenceVersion: '2.6.1.16',
+  })
 })
 
 test('malformed contradiction entries are removed when history opens', () => {

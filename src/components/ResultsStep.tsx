@@ -110,6 +110,52 @@ function AttributeTags({ attributes }: { attributes: AnalysisResult['attributes'
   )
 }
 
+function MetadataChecks({ result }: { result: AnalysisResult }) {
+  const statusStyle = (status: AnalysisResult['metadataChecks'][number]['status']) => {
+    if (status === 'local-exact') return 'border-emerald-200 bg-emerald-50 text-emerald-800'
+    if (status === 'missing') return 'border-rose-200 bg-rose-50 text-rose-800'
+    return 'border-amber-200 bg-amber-50 text-amber-800'
+  }
+  const statusLabel = (status: AnalysisResult['metadataChecks'][number]['status']) => ({
+    'local-exact': 'Найдено локально',
+    'local-similar': 'Похожее локально',
+    'erp-reference-exact': 'Найдено в справочнике ERP',
+    'erp-reference-similar': 'Похожее в справочнике ERP',
+    missing: 'Не найдено',
+  })[status]
+
+  return (
+    <div className="space-y-3">
+      {result.catalogContext.localUploadedAt === null ? (
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Локальная структура не загружена. Использован неполный справочный каталог ERP 2.6.1.16.
+        </p>
+      ) : (
+        <p className="text-sm text-slate-500">
+          Локальная структура загружена {new Intl.DateTimeFormat('ru-RU', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(result.catalogContext.localUploadedAt))}.
+        </p>
+      )}
+      {result.metadataChecks.length === 0 ? (
+        <p className="text-sm text-slate-500">Нет объектов для проверки.</p>
+      ) : result.metadataChecks.map((check, index) => {
+        const requested = check.requestedAttribute ? `${check.requestedObject}.${check.requestedAttribute}` : check.requestedObject
+        return (
+          <article key={`${requested}-${index}`} className={`rounded-xl border px-4 py-3 ${statusStyle(check.status)}`}>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="font-semibold">{requested}</span>
+              <span className="rounded-full bg-white/70 px-2.5 py-1 text-xs font-semibold">{statusLabel(check.status)}</span>
+            </div>
+            {(check.matchedAttribute || check.matchedObject) && (
+              <p className="mt-1 text-sm">Совпадение: {check.matchedAttribute || check.matchedObject}</p>
+            )}
+            <p className="mt-1 text-xs opacity-80">{check.note}</p>
+          </article>
+        )
+      })}
+    </div>
+  )
+}
+
 function SectionTags({ sections }: { sections: AnalysisResult['sections'] }) {
   if (sections.length === 0) {
     return <p className="text-sm text-slate-500">Разделы не определены.</p>
@@ -278,9 +324,10 @@ interface ResultsStepProps {
   result: AnalysisResult
   onReset: () => void
   saveError?: string | null
+  analysisWarning?: string | null
 }
 
-export default function ResultsStep({ result, onReset, saveError }: ResultsStepProps) {
+export default function ResultsStep({ result, onReset, saveError, analysisWarning }: ResultsStepProps) {
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pb-12 pt-6">
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
@@ -307,6 +354,12 @@ export default function ResultsStep({ result, onReset, saveError }: ResultsStepP
       {saveError && (
         <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           {saveError}
+        </p>
+      )}
+
+      {analysisWarning && (
+        <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          {analysisWarning}
         </p>
       )}
 
@@ -337,6 +390,10 @@ export default function ResultsStep({ result, onReset, saveError }: ResultsStepP
           <section className="mb-8">
             <h3 className="mb-3 text-lg font-semibold text-slate-800">Предполагаемые реквизиты</h3>
             <AttributeTags attributes={result.attributes} />
+          </section>
+          <section className="mb-8">
+            <h3 className="mb-3 text-lg font-semibold text-slate-800">Проверка по конфигурации</h3>
+            <MetadataChecks result={result} />
           </section>
           <section className="mb-8">
             <h3 className="mb-3 text-lg font-semibold text-slate-800">Затронутые разделы конфигурации</h3>

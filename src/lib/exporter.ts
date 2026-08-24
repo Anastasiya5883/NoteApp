@@ -26,6 +26,25 @@ export function buildMarkdown(result: AnalysisResult): string {
     lines.push('', result.attributes.map((a) => `- ${a.name}`).join('\n'))
   }
 
+  lines.push('', '## Проверка по конфигурации')
+  if (result.catalogContext.localUploadedAt === null) {
+    lines.push('', '> **Справочный каталог неполный.** Проверка выполнена по источнику «Справочный каталог 1С:ERP 2.6.1.16».')
+  } else {
+    lines.push('', `Проверка выполнена по локальной структуре от ${new Date(result.catalogContext.localUploadedAt).toLocaleString('ru-RU')}.`)
+  }
+  if (result.metadataChecks.length === 0) {
+    lines.push('', 'Нет объектов для проверки.')
+  } else {
+    for (const check of result.metadataChecks) {
+      const requested = check.requestedAttribute
+        ? `${check.requestedObject}.${check.requestedAttribute}`
+        : check.requestedObject
+      const matched = check.matchedAttribute || check.matchedObject || 'не найдено'
+      const source = check.source === 'local' ? 'локальная конфигурация' : check.source === 'erp-reference' ? 'справочный каталог ERP' : 'нет'
+      lines.push('', `- **${requested}** → ${matched} · источник: ${source} · ${check.note}`)
+    }
+  }
+
   lines.push('', '## Затронутые разделы конфигурации')
   if (result.sections.length === 0) {
     lines.push('', 'Разделы не определены.')
