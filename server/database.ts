@@ -6,6 +6,7 @@ const databasePath = resolve(process.env.DATABASE_PATH || 'server/data/app.db')
 mkdirSync(dirname(databasePath), { recursive: true })
 
 export const db = new DatabaseSync(databasePath)
+const MAX_HISTORY_ENTRIES_PER_USER = 100
 
 db.exec(`
   PRAGMA foreign_keys = ON;
@@ -58,6 +59,32 @@ db.exec(`
     table_part_count INTEGER NOT NULL,
     uploaded_at INTEGER NOT NULL
   );
+`)
+
+db.prepare(`
+  DELETE FROM file_history
+  WHERE id IN (
+    SELECT id
+    FROM (
+      SELECT id, ROW_NUMBER() OVER (
+        PARTITION BY user_id
+        ORDER BY created_at DESC, id DESC
+      ) AS history_position
+      FROM file_history
+    )
+    WHERE history_position > ?
+  )
+`).run(MAX_HISTORY_ENTRIES_PER_USER)
+
+const pruneHistoryForUser = db.prepare(`
+  DELETE FROM file_history
+  WHERE user_id = ? AND id NOT IN (
+    SELECT id
+    FROM file_history
+    WHERE user_id = ?
+    ORDER BY created_at DESC, id DESC
+    LIMIT ?
+  )
 `)
 
 export interface UserRecord {
@@ -151,26 +178,36 @@ export function createHistoryEntry(
   counts: HistoryCounts,
 ): HistoryDetailRecord {
   const createdAt = Date.now()
-  const result = db.prepare(`
-    INSERT INTO file_history (
-      user_id, file_name, source_text, analysis_json, word_count,
-      entity_count, attribute_count, section_count, gap_count, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    userId,
-    fileName,
-    sourceText,
-    analysisJson,
-    counts.words,
-    counts.entities,
-    counts.attributes,
-    counts.sections,
-    counts.gaps,
-    createdAt,
-  )
+  let insertedId: number
+  db.exec('BEGIN IMMEDIATE')
+  try {
+    const result = db.prepare(`
+      INSERT INTO file_history (
+        user_id, file_name, source_text, analysis_json, word_count,
+        entity_count, attribute_count, section_count, gap_count, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      userId,
+      fileName,
+      sourceText,
+      analysisJson,
+      counts.words,
+      counts.entities,
+      counts.attributes,
+      counts.sections,
+      counts.gaps,
+      createdAt,
+    )
+    pruneHistoryForUser.run(userId, userId, MAX_HISTORY_ENTRIES_PER_USER)
+    insertedId = Number(result.lastInsertRowid)
+    db.exec('COMMIT')
+  } catch (error) {
+    db.exec('ROLLBACK')
+    throw error
+  }
 
   return {
-    id: Number(result.lastInsertRowid),
+    id: insertedId,
     file_name: fileName,
     source_text: sourceText,
     analysis_json: analysisJson,
@@ -190,7 +227,8 @@ export function listHistoryEntries(userId: number): HistorySummaryRecord[] {
     FROM file_history
     WHERE user_id = ?
     ORDER BY created_at DESC, id DESC
-  `).all(userId) as unknown as HistorySummaryRecord[]
+    LIMIT ?
+  `).all(userId, MAX_HISTORY_ENTRIES_PER_USER) as unknown as HistorySummaryRecord[]
 }
 
 export function findHistoryEntry(userId: number, id: number): HistoryDetailRecord | undefined {
