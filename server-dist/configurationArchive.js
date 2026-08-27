@@ -1,10 +1,11 @@
-import { fromBuffer, getFileNameLowLevel, } from 'yauzl';
+import { stat } from 'node:fs/promises';
+import { fromBuffer, getFileNameLowLevel, open, } from 'yauzl';
 import { ConfigurationImportError, } from './configurationCatalogTypes.js';
 import { parseConfigurationXml } from './configurationXml.js';
 const MIB = 1024 * 1024;
 const GIB = 1024 * MIB;
 export const DEFAULT_CONFIGURATION_ARCHIVE_LIMITS = {
-    maxArchiveBytes: 10 * GIB,
+    maxArchiveBytes: 5 * GIB,
     maxExpandedBytes: 250 * MIB,
     maxEntries: 50_000,
 };
@@ -71,7 +72,7 @@ function isAcceptedMetadataPath(path) {
         && metadataFolders.has(segments[0])
         && segments[1].toLowerCase().endsWith('.xml');
 }
-function readZipFile(buffer, limits) {
+function readZipFile(openArchive, limits) {
     return new Promise((resolve, reject) => {
         let zipFile = null;
         let settled = false;
@@ -87,14 +88,9 @@ function readZipFile(buffer, limits) {
             zipFile?.close();
             reject(archiveError(error));
         };
-        fromBuffer(buffer, {
-            lazyEntries: true,
-            validateEntrySizes: true,
-            decodeStrings: false,
-            autoClose: false,
-        }, (openError, openedZipFile) => {
-            if (openError) {
-                fail(openError);
+        openArchive((openError, openedZipFile) => {
+            if (openError || !openedZipFile) {
+                fail(openError ?? new Error('ZIP archive could not be opened'));
                 return;
             }
             zipFile = openedZipFile;
@@ -130,6 +126,11 @@ function readZipFile(buffer, limits) {
                     zipFile?.readEntry();
                     return;
                 }
+                const retain = isPotentialMetadataPath(path);
+                if (!retain) {
+                    zipFile?.readEntry();
+                    return;
+                }
                 declaredBytes += entry.uncompressedSize;
                 if (!Number.isSafeInteger(declaredBytes) || declaredBytes > limits.maxExpandedBytes) {
                     fail(new ConfigurationImportError('expanded-too-large', 'Expanded archive is too large'));
@@ -141,7 +142,6 @@ function readZipFile(buffer, limits) {
                         return;
                     }
                     const chunks = [];
-                    const retain = isPotentialMetadataPath(path);
                     stream.on('error', fail);
                     stream.on('data', (chunk) => {
                         if (settled)
@@ -197,6 +197,25 @@ export async function readConfigurationArchive(buffer, sourceFileName, overrides
     if (buffer.length > limits.maxArchiveBytes) {
         throw new ConfigurationImportError('archive-too-large', 'ZIP archive is too large');
     }
-    const files = await readZipFile(buffer, limits);
+    const files = await readZipFile((callback) => fromBuffer(buffer, {
+        lazyEntries: true,
+        validateEntrySizes: true,
+        decodeStrings: false,
+        autoClose: false,
+    }, callback), limits);
+    return parseConfigurationXml(files, sourceFileName);
+}
+export async function readConfigurationArchiveFile(filePath, sourceFileName, overrides = {}) {
+    const limits = { ...DEFAULT_CONFIGURATION_ARCHIVE_LIMITS, ...overrides };
+    const file = await stat(filePath);
+    if (file.size > limits.maxArchiveBytes) {
+        throw new ConfigurationImportError('archive-too-large', 'ZIP archive is too large');
+    }
+    const files = await readZipFile((callback) => open(filePath, {
+        lazyEntries: true,
+        validateEntrySizes: true,
+        decodeStrings: false,
+        autoClose: false,
+    }, callback), limits);
     return parseConfigurationXml(files, sourceFileName);
 }

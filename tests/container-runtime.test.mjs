@@ -82,7 +82,16 @@ test('сервер доступен через внешний интерфейс
   try {
     const response = await waitForResponse(`http://${hostAddress}:${port}/`, child, output);
     assert.equal(response.status, 200);
-    assert.match(await response.text(), /<html/i);
+    const html = await response.text();
+    assert.match(html, /<html/i);
+
+    const assetPath = html.match(/<script[^>]+src="([^"]+)"/)?.[1];
+    assert.ok(assetPath);
+    const assetResponse = await fetch(`http://${hostAddress}:${port}${assetPath}`);
+    assert.equal(assetResponse.status, 200);
+    const asset = await assetResponse.text();
+    assert.match(asset, /ZIP до 5 ГиБ/);
+    assert.doesNotMatch(asset, /ZIP до 10 ГБ/);
   } finally {
     child.kill();
     await new Promise((resolve) => child.once('exit', resolve));
