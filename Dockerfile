@@ -12,6 +12,7 @@ RUN mkdir -p /app/tmp/config-uploads && chown node:node /app/tmp/config-uploads
 
 ENV HOST=0.0.0.0 \
     PORT=3001 \
+    NODE_ENV=production \
     DATABASE_PATH=/app/server/data/app.db \
     UPLOAD_TMP_DIR=/app/tmp/config-uploads
 

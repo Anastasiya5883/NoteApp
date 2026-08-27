@@ -56,6 +56,7 @@ test('контейнер использует отдельный volume для �
   ]);
 
   assert.match(dockerfile, /UPLOAD_TMP_DIR=\/app\/tmp\/config-uploads/);
+  assert.match(dockerfile, /NODE_ENV=production/);
   assert.match(compose, /app-upload-tmp:\/app\/tmp\/config-uploads/);
 });
 
@@ -70,6 +71,7 @@ test('сервер доступен через внешний интерфейс
       ...process.env,
       HOST: '0.0.0.0',
       PORT: String(port),
+      NODE_ENV: 'production',
       DATABASE_PATH: join(dataDirectory, 'app.db'),
       UPLOAD_TMP_DIR: join(dataDirectory, 'uploads'),
     },
@@ -92,6 +94,17 @@ test('сервер доступен через внешний интерфейс
     const asset = await assetResponse.text();
     assert.match(asset, /ZIP до 5 ГиБ/);
     assert.doesNotMatch(asset, /ZIP до 10 ГБ/);
+
+    const registration = await fetch(`http://${hostAddress}:${port}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ username: `cookie-${Date.now()}`, password: 'test-password' }),
+    });
+    assert.equal(registration.status, 201);
+    const sessionCookie = registration.headers.get('set-cookie');
+    assert.match(sessionCookie, /; Secure(?:;|$)/i);
+    assert.match(sessionCookie, /; HttpOnly(?:;|$)/i);
+    assert.match(sessionCookie, /; SameSite=Lax(?:;|$)/i);
   } finally {
     child.kill();
     await new Promise((resolve) => child.once('exit', resolve));
