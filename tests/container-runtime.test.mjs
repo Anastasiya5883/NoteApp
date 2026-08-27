@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { networkInterfaces, tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -49,6 +49,16 @@ async function waitForResponse(url, child, output) {
   throw lastError;
 }
 
+test('контейнер использует отдельный volume для временных загрузок', async () => {
+  const [dockerfile, compose] = await Promise.all([
+    readFile('Dockerfile', 'utf8'),
+    readFile('compose.yaml', 'utf8'),
+  ]);
+
+  assert.match(dockerfile, /UPLOAD_TMP_DIR=\/app\/tmp\/config-uploads/);
+  assert.match(compose, /app-upload-tmp:\/app\/tmp\/config-uploads/);
+});
+
 test('сервер доступен через внешний интерфейс контейнера', async () => {
   const hostAddress = findNonLoopbackAddress();
   const port = await reservePort();
@@ -61,6 +71,7 @@ test('сервер доступен через внешний интерфейс
       HOST: '0.0.0.0',
       PORT: String(port),
       DATABASE_PATH: join(dataDirectory, 'app.db'),
+      UPLOAD_TMP_DIR: join(dataDirectory, 'uploads'),
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });

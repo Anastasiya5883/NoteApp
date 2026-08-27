@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import test from 'node:test'
 import { strToU8, zipSync } from 'fflate'
-import { readConfigurationArchive } from './configurationArchive.js'
+import { readConfigurationArchive, readConfigurationArchiveFile } from './configurationArchive.js'
 import { catalogXml, configurationXml } from './testFixtures/configurationXml.js'
 
 function archive(entries: Record<string, string | Uint8Array>): Buffer {
@@ -51,6 +54,23 @@ test('reads Configuration.xml from the archive root and discards non-metadata pa
 
   assert.equal(result.configurationName, 'TradeManagement')
   assert.deepEqual(result.objects.map(({ kind, name }) => [kind, name]), [['Catalog', 'Номенклатура']])
+})
+
+test('reads a configuration archive from a file path', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'lovarus-archive-'))
+  const filePath = join(directory, 'configuration.zip')
+  writeFileSync(filePath, archive({
+    'Configuration.xml': configurationXml,
+    'Catalogs/Номенклатура.xml': catalogXml,
+  }))
+
+  try {
+    const result = await readConfigurationArchiveFile(filePath, 'configuration.zip')
+    assert.equal(result.configurationName, 'TradeManagement')
+    assert.equal(result.objects[0].name, 'Номенклатура')
+  } finally {
+    rmSync(directory, { recursive: true, force: true })
+  }
 })
 
 test('does not import metadata from an unrelated wrapper when configuration is at the archive root', async () => {

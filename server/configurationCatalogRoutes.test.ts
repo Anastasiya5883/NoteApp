@@ -1,16 +1,19 @@
 import assert from 'node:assert/strict'
 import { after, before, test } from 'node:test'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync, readdirSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import express from 'express'
 import { strToU8, zipSync } from 'fflate'
 import request from 'supertest'
 import { catalogXml, configurationXml } from './testFixtures/configurationXml.js'
 
 const temporaryDirectory = mkdtempSync(join(tmpdir(), 'lovarus-catalog-routes-'))
 process.env.DATABASE_PATH = join(temporaryDirectory, 'catalog-routes.db')
+process.env.UPLOAD_TMP_DIR = join(temporaryDirectory, 'uploads')
 
 const { createApp } = await import('./app.js')
+const { createCatalogUploadHandler } = await import('./configurationCatalogRoutes.js')
 const database = await import('./database.js')
 
 const anonymous = request(createApp())
@@ -68,14 +71,23 @@ test('rejects missing, non-ZIP, and overlong upload filenames', async () => {
   await userA.put('/api/configuration-catalog')
     .attach('file', validArchive, { filename: `${'a'.repeat(252)}.zip` })
     .expect(400)
+  assert.deepEqual(readdirSync(process.env.UPLOAD_TMP_DIR!), [])
 })
 
-test('passes an upload larger than 50 MiB to archive validation', async () => {
-  const response = await userA.put('/api/configuration-catalog')
-    .attach('file', Buffer.alloc(50 * 1024 * 1024 + 1), { filename: 'oversize.zip' })
-    .expect(400)
+test('rejects an upload over the configured limit without retaining a temporary file', async () => {
+  const uploadDirectory = join(temporaryDirectory, 'limited-uploads')
+  const app = express()
+  app.put('/upload', createCatalogUploadHandler({
+    maxArchiveBytes: 1024,
+    uploadDirectory,
+  }), (_req, res) => res.status(204).end())
 
-  assert.match(response.body.error, /архив|zip|конфигурац/i)
+  const response = await request(app).put('/upload')
+    .attach('file', Buffer.alloc(1025), { filename: 'oversize.zip' })
+    .expect(413)
+
+  assert.match(response.body.error, /5 ГиБ/)
+  assert.deepEqual(readdirSync(uploadDirectory), [])
 })
 
 test('stores a parsed catalog and returns complete details and counts', async () => {
@@ -105,6 +117,7 @@ test('stores a parsed catalog and returns complete details and counts', async ()
 
   const stored = await userA.get('/api/configuration-catalog').expect(200)
   assert.deepEqual(stored.body, response.body)
+  assert.deepEqual(readdirSync(process.env.UPLOAD_TMP_DIR!), [])
 })
 
 test('isolates configuration catalogs between users', async () => {

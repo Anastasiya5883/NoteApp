@@ -1,6 +1,8 @@
+import { stat } from 'node:fs/promises'
 import {
   fromBuffer,
   getFileNameLowLevel,
+  open,
   type Entry,
   type ZipFile,
 } from 'yauzl'
@@ -20,7 +22,7 @@ export interface ConfigurationArchiveLimits {
 }
 
 export const DEFAULT_CONFIGURATION_ARCHIVE_LIMITS: Readonly<ConfigurationArchiveLimits> = {
-  maxArchiveBytes: 10 * GIB,
+  maxArchiveBytes: 5 * GIB,
   maxExpandedBytes: 250 * MIB,
   maxEntries: 50_000,
 }
@@ -96,8 +98,12 @@ function isAcceptedMetadataPath(path: string): boolean {
     && segments[1].toLowerCase().endsWith('.xml')
 }
 
+type OpenArchive = (
+  callback: (error: Error | null, zipFile?: ZipFile) => void,
+) => void
+
 function readZipFile(
-  buffer: Buffer,
+  openArchive: OpenArchive,
   limits: ConfigurationArchiveLimits,
 ): Promise<Map<string, Buffer>> {
   return new Promise((resolve, reject) => {
@@ -116,14 +122,9 @@ function readZipFile(
       reject(archiveError(error))
     }
 
-    fromBuffer(buffer, {
-      lazyEntries: true,
-      validateEntrySizes: true,
-      decodeStrings: false,
-      autoClose: false,
-    }, (openError, openedZipFile) => {
-      if (openError) {
-        fail(openError)
+    openArchive((openError, openedZipFile) => {
+      if (openError || !openedZipFile) {
+        fail(openError ?? new Error('ZIP archive could not be opened'))
         return
       }
       zipFile = openedZipFile
@@ -162,6 +163,12 @@ function readZipFile(
           return
         }
 
+        const retain = isPotentialMetadataPath(path)
+        if (!retain) {
+          zipFile?.readEntry()
+          return
+        }
+
         declaredBytes += entry.uncompressedSize
         if (!Number.isSafeInteger(declaredBytes) || declaredBytes > limits.maxExpandedBytes) {
           fail(new ConfigurationImportError('expanded-too-large', 'Expanded archive is too large'))
@@ -174,7 +181,6 @@ function readZipFile(
             return
           }
           const chunks: Buffer[] = []
-          const retain = isPotentialMetadataPath(path)
           stream.on('error', fail)
           stream.on('data', (chunk: Buffer) => {
             if (settled) return
@@ -231,6 +237,30 @@ export async function readConfigurationArchive(
   if (buffer.length > limits.maxArchiveBytes) {
     throw new ConfigurationImportError('archive-too-large', 'ZIP archive is too large')
   }
-  const files = await readZipFile(buffer, limits)
+  const files = await readZipFile((callback) => fromBuffer(buffer, {
+    lazyEntries: true,
+    validateEntrySizes: true,
+    decodeStrings: false,
+    autoClose: false,
+  }, callback), limits)
+  return parseConfigurationXml(files, sourceFileName)
+}
+
+export async function readConfigurationArchiveFile(
+  filePath: string,
+  sourceFileName: string,
+  overrides: Partial<ConfigurationArchiveLimits> = {},
+): Promise<ConfigurationCatalog> {
+  const limits = { ...DEFAULT_CONFIGURATION_ARCHIVE_LIMITS, ...overrides }
+  const file = await stat(filePath)
+  if (file.size > limits.maxArchiveBytes) {
+    throw new ConfigurationImportError('archive-too-large', 'ZIP archive is too large')
+  }
+  const files = await readZipFile((callback) => open(filePath, {
+    lazyEntries: true,
+    validateEntrySizes: true,
+    decodeStrings: false,
+    autoClose: false,
+  }, callback), limits)
   return parseConfigurationXml(files, sourceFileName)
 }
